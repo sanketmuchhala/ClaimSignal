@@ -98,6 +98,14 @@ Use the same task/split/limit, `--provider=llm`, an explicit `--model=<Workers-A
 
 No new LLM performance is claimed until an explicit live run is captured. Provider choice and model are never silently substituted.
 
+## Offline interactive explorer
+
+```bash
+npm run experiment:explore -- --run=reports/experiments/pilot-20261024/choice --run=reports/experiments/pilot-20261024/noul --run=reports/experiments/pilot-20261024/score --out=experiment-results/pilot.html
+```
+
+Open the generated HTML file in a browser. It embeds verified captures and uses no network resources. Select a task, inspect event or top-label reliability, move the abstention threshold, filter wrong/failed/unattempted cases, and inspect each claim's input and raw answer. Model changes, missing classes, synthetic/test-double provenance, and source revision stay visible. The threshold control is exploratory and does not tune or change the production policy. The file contains source claims, so share it only with the same care as its input dataset.
+
 ## Primitive references
 
 Checked 2026-10-24: [Choice](https://docs.typesafe.ai/primitives/choice), [Score](https://docs.typesafe.ai/primitives/score), [Noul](https://docs.typesafe.ai/primitives/noul), and [confidence semantics](https://docs.typesafe.ai/confidence). The experiment protocol tests model quality rather than assuming vendor calibration claims. The [independent Jev paper](https://arxiv.org/abs/2609.37647) supplies reproduction hypotheses; its results do not establish claims-domain performance.
