@@ -40,7 +40,8 @@ export async function baselines(plan: Plan) {
   return {
     schemaVersion: 1, kind: 'MEASURED OFFLINE BASELINES — NOT JEV OR LLM RESULTS', planId: plan.id,
     dataset: plan.dataset,
-    training: kind === 'binary' ? { split: 'train', count: training.length, sourceSha256: datasetInfo.localSha256, selectedIdsSha256: hash(training.map(e => e.claim.id).sort()), modelSha256: hash(model), prior } : null,
+    // Hash parameters at twelve significant digits: Math.log can differ in the last bit between platforms.
+    training: kind === 'binary' ? { split: 'train', count: training.length, sourceSha256: datasetInfo.localSha256, selectedIdsSha256: hash(training.map(e => e.claim.id).sort()), modelSha256: hash(JSON.parse(JSON.stringify(model, (_, v) => typeof v === 'number' ? Number(v.toPrecision(12)) : v))), prior } : null,
     limitations: ['Uses the same allowed information as Jev; tabular models receive parsed fields.', 'Naive Bayes posterior scores are not assumed calibrated. No calibration fitting or threshold tuning.', 'Field count is an exact reading control, not evidence of fraud prediction.', 'Training time and local inference timing are not compared with network latency.'],
     methods: methods.map(method => {
       // Predictions depend on supplied fields or training data, never selected evaluation targets.
