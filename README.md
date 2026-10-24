@@ -8,6 +8,8 @@ ClaimSignal is a TypeScript insurance claims triage service for Cloudflare Worke
 
 The first implementation includes a Jev adapter, confidence-based routing, an LLM fallback, an authenticated HTTP API, and a reproducible benchmark harness. Live Cloudflare runs are measured in the [live comparison report](reports/live-comparison.md).
 
+ClaimSignal is also an applied **Jev Decision Intelligence Lab**, using claims data to study decision primitives, probability calibration, abstention, and failure cases. The [experiment protocol and commands](docs/experiments.md) describe the separate research modules; the [commit progress log](docs/experiment-progress.md) tracks rollback checkpoints. The existing service and historical measurements remain the baseline. New experiment planning is offline by default, and synthetic smoke checks are explicitly separated from historical claims evaluations.
+
 ## How it works
 
 ```mermaid

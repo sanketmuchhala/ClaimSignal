@@ -54,6 +54,21 @@ node --env-file=.env experiments/run.ts --task=vehicle-fraud-choice-v1 --limit=2
 
 The output directory must be new. Each run saves `plan.json`, `run.json`, append-only `observations.jsonl`, and `completion.json`. Raw responses and rounded distributions are retained, along with actual resolved model version, usage, timing, request hashes, Git revision, and dirty-tree status. Credentials are never written. A rate limit or authorization failure stops execution without retries; other errors are explicit failed observations. Interrupted runs can be inspected without a completion file. Reruns use a new directory, never overwrite original evidence. This milestone does not implement resume, parallel requests, cost estimates, or threshold tuning.
 
+## Offline analysis
+
+```bash
+npm run experiment:report -- --run=experiment-results/fraud-choice-validation-01 --out=experiment-results/fraud-choice-validation-01/report.json
+```
+
+The reporter makes no model calls, refuses to overwrite a report, checks request identity, rejects duplicate claims and model-version drift, and re-parses raw responses. It can analyze interrupted runs without `completion.json`; truncated JSON lines cause an error rather than silent omission.
+
+- Binary tasks: Brier score, clipped log loss, event reliability bins/ECE, discrimination, fixed 0.5 threshold, and top-label reliability. Binary Choice and Noul use the same threshold, including ties; the raw selected option remains visible.
+- Category tasks: accuracy, class-summed Brier score, log loss, and top-label reliability.
+- Score tasks: MAE in rubric units and normalized ranked probability score (mean squared cumulative probability error over the K−1 boundaries). Numeric rubric positions are never evaluated as event probabilities.
+- Abstention: loss versus coverage, separately ranked by predicted-class probability and vendor confidence where available. Entire confidence ties enter together. The denominator is all planned claims, including failed and unattempted calls. Ordinal curves use rubric MAE, not classification accuracy.
+- Reported probabilities rounded by Jev are normalized by their sum for distribution metrics only. Raw values remain unchanged; the number of affected responses is reported. Log loss uses a stated 1e-15 probability floor for zero-probability outcomes.
+- Small-sample plots and ECE do not establish calibration. Reports include bin sizes, class prevalence, failure counts, unique groups, and per-claim errors. There are no uncertainty intervals or calibrated/tuned thresholds in this milestone.
+
 ## Primitive references
 
 Checked 2026-10-24: [Choice](https://docs.typesafe.ai/primitives/choice), [Score](https://docs.typesafe.ai/primitives/score), [Noul](https://docs.typesafe.ai/primitives/noul), and [confidence semantics](https://docs.typesafe.ai/confidence). The experiment protocol tests model quality rather than assuming vendor calibration claims. The [independent Jev paper](https://arxiv.org/abs/2609.37647) supplies reproduction hypotheses; its results do not establish claims-domain performance.
