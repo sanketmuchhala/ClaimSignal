@@ -14,6 +14,7 @@
     "deploy": "npx wrangler@4.141.0 deploy",
     "benchmark": "node benchmarks/run.ts",
     "benchmark:compare": "node benchmarks/compare.ts",
+    "report:live": "node benchmarks/compare.ts reports/live/vehicle-test-part*.jsonl.gz --out=reports/live/vehicle-comparison.json > /dev/null && node benchmarks/compare.ts reports/live/synthetic.jsonl.gz --out=reports/live/synthetic-comparison.json > /dev/null && node benchmarks/charts.ts",
     "dataset:check": "node benchmarks/run.ts --dataset=vehicle --split=all --validate-only",
     "dataset:evaluate": "node benchmarks/dataset-evaluation.ts"
   },

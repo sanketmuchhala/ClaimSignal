@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="292" viewBox="0 0 720 292" role="img" aria-label="Where the same routing policy sends each model's claims">
+<rect x="0.5" y="0.5" width="719" height="291" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+<text x="20" y="30" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328">Where the same routing policy sends each model's claims</text>
+<text x="20" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#57606a">The deployed service never lets LLM output auto-resolve; the LLM rows show what the same thresholds would do.</text>
+<rect x="20" y="62" width="10" height="10" rx="2" fill="#b42318"/>
+<text x="34" y="71" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#57606a">Auto-resolved</text>
+<rect x="134.60000000000002" y="62" width="10" height="10" rx="2" fill="#d4a72c"/>
+<text x="148.60000000000002" y="71" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#57606a">LLM second opinion, then a person</text>
+<rect x="373.2" y="62" width="10" height="10" rx="2" fill="#2f6fbd"/>
+<text x="387.2" y="71" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#57606a">Straight to a person</text>
+<text x="20" y="96" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#57606a">Vehicle claims</text>
+<text x="176" y="123" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#1f2328" text-anchor="end">Jev (deployed)</text>
+<rect x="190" y="108" width="1" height="22" rx="3" fill="#d4a72c"/>
+<rect x="190.75" y="108" width="497.75" height="22" rx="3" fill="#2f6fbd"/>
+<text x="197.75" y="123" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">99.9%</text>
+<text x="176" y="153" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#1f2328" text-anchor="end">LLM, same thresholds</text>
+<rect x="190" y="138" width="498.5" height="22" rx="3" fill="#b42318"/>
+<text x="197" y="153" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">100%</text>
+<text x="20" y="194" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#57606a">Synthetic claims</text>
+<text x="176" y="221" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#1f2328" text-anchor="end">Jev (deployed)</text>
+<rect x="190" y="206" width="248.5" height="22" rx="3" fill="#d4a72c"/>
+<text x="197" y="221" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">50.0%</text>
+<rect x="440" y="206" width="248.5" height="22" rx="3" fill="#2f6fbd"/>
+<text x="447" y="221" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">50.0%</text>
+<text x="176" y="251" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#1f2328" text-anchor="end">LLM, same thresholds</text>
+<rect x="190" y="236" width="290.15000000000003" height="22" rx="3" fill="#b42318"/>
+<text x="197" y="251" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">58.3%</text>
+<rect x="481.65000000000003" y="236" width="206.84999999999997" height="22" rx="3" fill="#2f6fbd"/>
+<text x="488.65000000000003" y="251" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">41.7%</text>
+</svg>

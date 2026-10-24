@@ -67,6 +67,14 @@ Jev and `@cf/meta/llama-3.1-8b-instruct-fp8` were run on Workers AI against the 
 - At the current thresholds Jev auto-resolves nothing; it sends 99.85% of vehicle claims straight to review. The LLM reports full confidence, so the same thresholds would auto-resolve every vehicle claim, fraud-labelled ones included.
 - The vehicle run stopped at the Workers Free plan's daily allocation. The remaining 1,663 test claims can be resumed with `--offset=1347`.
 
+![Latency per claim: hybrid pipeline median 163 ms, LLM only 2,547 ms](reports/figures/latency.svg)
+
+![Fraud ROC-AUC with 95% intervals: Jev 0.507, LLM only 0.500, hybrid 0.507, Naive Bayes 0.691](reports/figures/fraud-auc.svg)
+
+![Routing shares under one policy for Jev and for the LLM on vehicle and synthetic claims](reports/figures/routing.svg)
+
+The figures are drawn from the committed checkpoints by `npm run report:live`, and CI fails if they or the comparison files drift from the data.
+
 ## Routing policy
 
 | Condition | Outcome |

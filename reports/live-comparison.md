@@ -3,9 +3,10 @@
 Measured on Cloudflare Workers AI on 24 October 2026 with `typesafe/jev` (resolved `jev-1.13.0`) and `@cf/meta/llama-3.1-8b-instruct-fp8`. Both models saw identical claim text and the same rubrics. Calls ran sequentially from one machine, alternating which pipeline went first. Every figure below is reproducible from the committed checkpoints in [`live/`](live/):
 
 ```bash
-node benchmarks/compare.ts reports/live/vehicle-test-part1.jsonl.gz --out=reports/live/vehicle-comparison.json
-node benchmarks/compare.ts reports/live/synthetic.jsonl.gz --out=reports/live/synthetic-comparison.json
+npm run report:live   # recomputes live/*-comparison.json and figures/*.svg from the checkpoints
 ```
+
+CI runs the same command and fails if the committed numbers or figures differ.
 
 Intervals are 95% paired percentile bootstrap intervals over claims (2,000 resamples, seed 20261024). Each model is scored on the same resampled claims in every draw.
 
@@ -26,6 +27,12 @@ Intervals are 95% paired percentile bootstrap intervals over claims (2,000 resam
 - **Jev is faster, cheaper and more reliable as the primary call.** The hybrid pipeline's median latency is about 16 times lower than the LLM's, and its estimated inference cost is about 2.7 times lower. Jev had no failed calls. The LLM had two 8-second timeouts and one invalid response.
 - **Jev is cautious and the LLM is overconfident.** Under the same routing policy, Jev sends 99.85% of vehicle claims straight to a person and auto-resolves none. The LLM reports full confidence and zero risk, so the same thresholds would auto-resolve every vehicle claim, including all 90 fraud-labelled ones, and an injury claim that needs review in all five synthetic runs.
 - **On claims written to test the rubric, Jev is more accurate.** Across 12 hand-written claims run five times each, Jev got every claim type and review need right. The LLM labelled an admitted-fabrication travel claim as "other" and rated an injury claim as needing no review, both consistently.
+
+![Latency per claim: hybrid pipeline median 163 ms, LLM only 2,547 ms](figures/latency.svg)
+
+![Fraud ROC-AUC with 95% intervals: Jev 0.507, LLM only 0.500, hybrid 0.507, Naive Bayes 0.691](figures/fraud-auc.svg)
+
+![Routing shares under one policy for Jev and for the LLM on vehicle and synthetic claims](figures/routing.svg)
 
 ## Held-out vehicle claims
 
