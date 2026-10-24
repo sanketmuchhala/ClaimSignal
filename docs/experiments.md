@@ -79,6 +79,17 @@ For vehicle fraud, this computes the existing categorical Naive Bayes algorithm 
 
 The artifact records training IDs/model hashes, every baseline prediction, full-sample summaries, and paired summaries on successful model cases. Errors and unattempted cases stay visible; missing model outputs never become negative predictions. Baseline probability scores are evaluated for calibration, not presumed calibrated. No local-compute versus remote-network speed claim is made.
 
+## Paired prompt sensitivity
+
+Use `--variant=choice-order-reversed-v1`, `--variant=paraphrase-v1`, or `--variant=administrative-note-v1` with the same task, split, and limit as a base run. Planning remains offline unless `--execute` is supplied. Option reversal applies only to Choice; paraphrases are defined only for the three historical vehicle tasks. A plan records its parent hash and exact transformation. Variants cannot be stacked.
+
+```bash
+npm run experiment -- --task=vehicle-fraud-choice-v1 --limit=20 --variant=choice-order-reversed-v1
+npm run experiment:robustness -- --base=experiment-results/base --variant=experiment-results/variant --out=experiment-results/robustness.json
+```
+
+The offline comparison verifies the exact declared transformation and same model, then reports paired decision flips, total variation in probability distributions, or absolute changes in rubric score. Unpaired failures remain visible. One response per form does not separate stochastic variation from prompt sensitivity; no statistical significance is claimed. Model outputs and labels are compared in their separate reports. Baselines for transformed inputs are not silently reused; compare those to their unmodified base run explicitly.
+
 ## Primitive references
 
 Checked 2026-10-24: [Choice](https://docs.typesafe.ai/primitives/choice), [Score](https://docs.typesafe.ai/primitives/score), [Noul](https://docs.typesafe.ai/primitives/noul), and [confidence semantics](https://docs.typesafe.ai/confidence). The experiment protocol tests model quality rather than assuming vendor calibration claims. The [independent Jev paper](https://arxiv.org/abs/2609.37647) supplies reproduction hypotheses; its results do not establish claims-domain performance.

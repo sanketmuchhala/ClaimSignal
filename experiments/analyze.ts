@@ -88,6 +88,7 @@ export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
     schemaVersion: 1,
     kind: run.provenance === 'test-double' ? 'TEST DOUBLE — NOT MODEL PERFORMANCE' : plan.kind,
     planId: plan.id, task: plan.task, dataset: plan.dataset, run,
+    ...(plan.variant ? { variant: plan.variant } : {}),
     resolvedModel: [...models][0] ?? null,
     plannedTargetCounts, evaluatedTargetCounts, sampleWarnings,
     counts: { planned, attempted: rows.length, succeeded: successes, failed: errors.length, unattempted: planned - rows.length, uniqueFeatureGroups: new Set(plan.examples.map(e => e.group)).size },

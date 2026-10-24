@@ -27,6 +27,7 @@ export interface Plan {
   dataset: { name: string; sha256: string; split: 'train' | 'validation' | 'test' | 'smoke'; available: number };
   selection: 'claim ID ascending, first N; no label selection';
   examples: Example[];
+  variant?: { id: 'choice-order-reversed-v1' | 'paraphrase-v1' | 'administrative-note-v1'; parentPlanId: string };
   id: string;
 }
 export type Answer =
