@@ -64,3 +64,24 @@ test('CLI defaults to offline planning and rejects unsafe/unknown arguments befo
   for (const extra of ['--unknown', '--limit=2', '--out=unwanted', '--split=smoke']) assert.throws(() => run('--task=vehicle-fraud-choice-v1', '--limit=2', extra));
   assert.throws(() => run('--task=vehicle-fraud-choice-v1', '--execute', '--out=unwanted'), /requires CLOUDFLARE/);
 });
+
+test('opt-in rate-limit retries repeat only HTTP 429, record the count, and stop on a spent allocation', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'claimsignal-retry-'));
+  try {
+    const plan = await createPlan({ task: 'vehicle-fraud-noul-v1', limit: 3 });
+    let calls = 0, spent = false;
+    const ai = { async run() {
+      calls++;
+      if (calls === 1 || calls === 2) throw new Error('Cloudflare HTTP 429');
+      if (calls === 4) { spent = true; throw new Error('Cloudflare HTTP 429'); }
+      return envelope({ type: 'noul', noul: 0.25 });
+    } };
+    const options = { directory: join(dir, 'run'), model: 'test', codeRevision: 'test', workingTreeDirty: true, provenance: 'test-double' as const, rateLimit: { retries: 3, pauseMs: 1, allocationSpent: () => spent } };
+    const result = await runPlan(plan, ai, options);
+    assert.deepEqual([result.attempted, result.succeeded, result.failed, result.unattempted, result.rateLimitRetries, result.stopReason], [2, 1, 1, 1, 2, 'daily allocation spent']);
+    const rows: Observation[] = (await readFile(join(options.directory, 'observations.jsonl'), 'utf8')).trim().split('\n').map(s => JSON.parse(s));
+    // Throttled attempts never become observations; the recorded row is the attempt that reached the model.
+    assert.deepEqual(rows.map(r => [r.exampleId, r.status]), [[plan.examples[0].id, 'ok'], [plan.examples[1].id, 'provider-error']]);
+    assert.match(JSON.parse(await readFile(join(options.directory, 'run.json'), 'utf8')).execution, /up to 3 retries after HTTP 429/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});

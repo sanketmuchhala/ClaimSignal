@@ -54,6 +54,8 @@ node --env-file=.env experiments/run.ts --task=vehicle-fraud-choice-v1 --limit=2
 
 The output directory must be new. Each run saves `plan.json`, `run.json`, append-only `observations.jsonl`, and `completion.json`. Raw responses and rounded distributions are retained, along with actual resolved model version, usage, timing, request hashes, Git revision, and dirty-tree status. Credentials are never written. A rate limit or authorization failure stops execution without retries; other errors are explicit failed observations. Interrupted runs can be inspected without a completion file. Reruns use a new directory, never overwrite original evidence. This milestone does not implement resume, parallel requests, cost estimates, or threshold tuning.
 
+Cloudflare's per-minute throttling returns HTTP 429 before any inference runs. `--rate-limit-retries=N` (0–10, default 0) waits `EXPERIMENT_THROTTLE_PAUSE_MS` (default 30 s), doubling each time, and retries that claim. Throttled attempts are never recorded as observations; `completion.json` counts them as `rateLimitRetries`, and `run.json` states the policy. A spent daily allocation still stops the run.
+
 ## Offline analysis
 
 ```bash
@@ -97,6 +99,16 @@ Use the same task/split/limit, `--provider=llm`, an explicit `--model=<Workers-A
 `npm run experiment:paired -- --left=<jev-run> --right=<llm-run> --out=<new.json>` verifies identical plans and reports each full run plus metrics on their shared successful cases. `experiment:compare` also works on the LLM run to produce matched deterministic/ML baselines. These are generated probability estimates, not exact next-token probabilities; LLM self-reported confidence is excluded from the Jev-confidence curve. Missing resolved LLM versions are recorded as `unreported:<requested-alias>` and make controlled same-version robustness comparison unavailable.
 
 No new LLM performance is claimed until an explicit live run is captured. Provider choice and model are never silently substituted.
+
+## Grouped uncertainty
+
+```bash
+npm run experiment:uncertainty -- --run=<run> [--against=<other-run>] --out=<new.json>
+```
+
+Offline 95% percentile bootstrap intervals, 2,000 resamples, fixed seed `20261024`. The resampling unit is the claim group: vehicle claims with identical allowed features resample together, and synthetic fixtures are their own groups, so near-duplicates never count as independent evidence. Each run gets intervals for its answered share and every task metric. Unmodified vehicle runs also get the train-only baselines on the claims the model answered, with model − baseline differences from the same resamples.
+
+`--against` compares two captures on the same claims, such as Jev against an LLM, or Choice against Noul. The plans must use the same dataset, split, selection and target kind, and one plan's claims must be the first claims of the other's; a different selection is refused. Differences use the claims both sides answered, and answered shares are compared separately. An interval is omitted when its statistic is undefined in more than 1% of resamples, such as ROC-AUC on a resample with no positive outcome. Reports state the number of groups and answered positives, warn below 30 groups or 10 positives, and make no multiple-comparison adjustment or significance claim. With one call per claim, intervals describe sampling variability, not run-to-run model variation.
 
 ## Offline interactive explorer
 
