@@ -28,3 +28,12 @@ test('provider failures yield an explicit review disposition without sensitive e
   assert.equal(body.route, 'human_review'); assert.equal(body.reason, 'fallback_unavailable');
   assert.equal(typeof body.requestId, 'string'); assert.ok(!JSON.stringify(body).includes(claim.description));
 });
+test('optional vehicle fields add a tabular signal; unknown fields are rejected', async () => {
+  const withVehicle = JSON.stringify({ ...claim, vehicle: { Make: 'Honda', PoliceReportFiled: 'No', BasePolicy: 'Collision' } });
+  const body = await (await worker.fetch(request(withVehicle), env)).json() as { tabular: { model: string; featuresUsed: number; score: number }; policyVersion: string };
+  assert.equal(body.tabular.model, 'vehicle-naive-bayes-v1'); assert.equal(body.tabular.featuresUsed, 3); assert.ok(body.tabular.score > 0 && body.tabular.score < 1);
+  assert.equal(body.policyVersion, 'triage-v2');
+  assert.equal((await worker.fetch(request(JSON.stringify({ ...claim, vehicle: { Colour: 'red' } })), env)).status, 400);
+  const plain = await (await worker.fetch(request(), env)).json() as { tabular: unknown };
+  assert.equal(plain.tabular, null);
+});

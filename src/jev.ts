@@ -1,4 +1,4 @@
-import { claimTypes, record, unit, parseUsage } from './domain.ts';
+import { claimTypes, modelInput, record, unit, parseUsage } from './domain.ts';
 import type { AI, Claim, Prediction } from './domain.ts';
 
 export const questions = {
@@ -51,5 +51,5 @@ export function parseJev(raw: unknown, model: string): Prediction {
 }
 
 export async function evaluateJev(ai: AI, claim: Claim, model = 'typesafe/jev'): Promise<Prediction> {
-  return parseJev(await ai.run(model, { state: claim, questions }), model);
+  return parseJev(await ai.run(model, { state: modelInput(claim), questions }), model);
 }

@@ -81,6 +81,7 @@ The figures are drawn from the committed checkpoints by `npm run report:live`, a
 | --- | --- |
 | Type and risk confidence ≥ 0.85, fraud score ≤ 0.25, review probability ≤ 0.10, known category | `auto_resolved` |
 | Fraud score ≥ 0.70 or review probability ≥ 0.80 | `human_review`, without an LLM call |
+| Structured vehicle fields supplied and the tabular fraud score ≥ its validation-chosen cutoff | `human_review` (`tabular_fraud_signal`), without an LLM call |
 | Any remaining uncertainty, invalid primary response, or primary timeout | LLM suggestion followed by `human_review` |
 | Both providers fail | `human_review` with an explicit failure reason |
 
@@ -120,7 +121,9 @@ curl http://localhost:8787/v1/triage \
 
 Set `TRIAGE_API_KEY` in your shell to the same value as `.dev.vars` before running the curl command. `GET /health` is public and only reports that the Worker is responding; it does not check provider readiness.
 
-The response includes `claimId`, `route`, `reason`, `decision`, `fallbackDecision`, provider attempts with timing and usage, a request ID, and a policy version. Unknown amounts and currencies may both be `null`; known amounts retain their numeric value and currency. Responses are not cached. Invalid requests fail before inference; the endpoint limits bodies to 32 KiB and descriptions to 8,000 characters.
+Claims may also carry an optional `vehicle` object with any of the 20 allowlisted fields in [`src/vehicle-fraud-model.ts`](src/vehicle-fraud-model.ts), such as `{"Make": "Honda", "PoliceReportFiled": "No"}`; see [`examples/vehicle-claim.json`](examples/vehicle-claim.json). A Naive Bayes model trained on the public dataset scores them in the Worker, with no extra inference call. A score at or above the cutoff chosen on the validation split (0.269) blocks auto-resolution. Values are the dataset's own categories, listed per field in the model file; any other value counts as unseen. Missing fields are left out of the score rather than guessed, and unknown field names are rejected. Language models never receive these fields.
+
+The response includes `claimId`, `route`, `reason`, `decision`, `fallbackDecision`, `tabular` (the score, cutoff and fields used, or `null`), provider attempts with timing and usage, a request ID, and a policy version. Unknown amounts and currencies may both be `null`; known amounts retain their numeric value and currency. Responses are not cached. Invalid requests fail before inference; the endpoint limits bodies to 32 KiB and descriptions to 8,000 characters.
 
 ## Benchmark against an LLM-only baseline
 

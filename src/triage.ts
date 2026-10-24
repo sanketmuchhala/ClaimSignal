@@ -1,4 +1,7 @@
 import type { Claim, Decision, Prediction, Provider, Usage } from './domain.ts';
+import { tabularSignal } from './tabular.ts';
+import type { TabularModel, TabularSignal } from './tabular.ts';
+import { vehicleFraudModel } from './vehicle-fraud-model.ts';
 
 export const defaultPolicy = Object.freeze({ confidence: 0.85, maxAutoRisk: 0.25, specialistRisk: 0.7, maxAutoReviewProbability: 0.1, specialistReviewProbability: 0.8 });
 export type Policy = typeof defaultPolicy;
@@ -10,6 +13,7 @@ export interface TriageResult {
   reason: string;
   decision: Decision | null;
   fallbackDecision: Decision | null;
+  tabular: TabularSignal | null;
   attempts: Attempt[];
   latencyMs: number;
 }
@@ -27,7 +31,7 @@ export async function withTimeout<T>(operation: Promise<T>, milliseconds: number
   } finally { clearTimeout(timer); }
 }
 
-export async function triage(claim: Claim, providers: { jev: Provider; llm: Provider }, policy: Policy = defaultPolicy, timeoutMs = 8000): Promise<TriageResult> {
+export async function triage(claim: Claim, providers: { jev: Provider; llm: Provider }, policy: Policy = defaultPolicy, timeoutMs = 8000, tabularModel: TabularModel = vehicleFraudModel): Promise<TriageResult> {
   const started = performance.now();
   const attempts: Attempt[] = [];
   const attempt = async (name: 'jev' | 'llm'): Promise<Prediction | null> => {
@@ -41,12 +45,15 @@ export async function triage(claim: Claim, providers: { jev: Provider; llm: Prov
       return null;
     }
   };
-  const finish = (route: Route, reason: string, decision: Decision | null, fallbackDecision: Decision | null = null): TriageResult => ({ claimId: claim.id, route, reason, decision, fallbackDecision, attempts, latencyMs: performance.now() - started });
+  const tabular = claim.vehicle ? tabularSignal(tabularModel, claim.vehicle) : null;
+  const finish = (route: Route, reason: string, decision: Decision | null, fallbackDecision: Decision | null = null): TriageResult => ({ claimId: claim.id, route, reason, decision, fallbackDecision, tabular, attempts, latencyMs: performance.now() - started });
   const primary = await attempt('jev');
   if (primary) {
     const route = classifyRoute(primary.decision, policy);
-    if (route === 'auto') return finish('auto_resolved', 'high_confidence_low_risk', primary.decision);
+    if (route === 'auto' && !tabular?.flagged) return finish('auto_resolved', 'high_confidence_low_risk', primary.decision);
     if (route === 'human') return finish('human_review', 'specialist_review_required', primary.decision);
+    // The tabular model ranks historical fraud where language models did not; its flag blocks auto-resolution.
+    if (tabular?.flagged) return finish('human_review', 'tabular_fraud_signal', primary.decision);
   }
   const fallback = await attempt('llm');
   // LLM confidence is self-reported. It cannot override the primary gate.

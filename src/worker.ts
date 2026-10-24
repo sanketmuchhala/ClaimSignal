@@ -45,6 +45,6 @@ export default {
       llm: c => evaluateLlm(env.AI, c, env.LLM_MODEL),
     });
     // The caller must persist human_review responses in its own review queue.
-    return json({ ...result, requestId: crypto.randomUUID(), policyVersion: 'triage-v1' });
+    return json({ ...result, requestId: crypto.randomUUID(), policyVersion: 'triage-v2' });
   },
 };

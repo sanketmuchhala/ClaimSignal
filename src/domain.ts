@@ -1,6 +1,9 @@
+import { vehicleFraudModel } from './vehicle-fraud-model.ts';
+
 export const claimTypes = ['auto', 'property', 'health', 'travel', 'other'] as const;
 export type ClaimType = typeof claimTypes[number];
-export interface Claim { id: string; description: string; amount: number | null; currency: string | null }
+// `vehicle` holds optional structured fields for the tabular fraud model; language models never see it.
+export interface Claim { id: string; description: string; amount: number | null; currency: string | null; vehicle?: Record<string, string> }
 export interface Decision {
   claimType: ClaimType;
   typeConfidence: number;
@@ -28,7 +31,23 @@ export function parseClaim(value: unknown): Claim {
   if (v.amount !== null && (typeof v.amount !== 'number' || !Number.isFinite(v.amount) || v.amount < 0 || v.amount > 1e9)) throw new Error('amount must be null or a number between 0 and 1 billion');
   if (v.currency !== null && (typeof v.currency !== 'string' || !/^[A-Z]{3}$/.test(v.currency))) throw new Error('currency must be null or a three-letter uppercase code');
   if ((v.amount === null) !== (v.currency === null)) throw new Error('Unknown amount and currency must both be null');
-  return { id: v.id, description: v.description.trim(), amount: v.amount, currency: v.currency };
+  const claim: Claim = { id: v.id, description: v.description.trim(), amount: v.amount, currency: v.currency };
+  if (v.vehicle !== undefined) claim.vehicle = parseVehicleFields(v.vehicle);
+  return claim;
+}
+// Unknown field names are rejected rather than dropped, so a misspelled field cannot silently weaken the score.
+function parseVehicleFields(value: unknown): Record<string, string> {
+  const v = record(value);
+  const keys = Object.keys(v);
+  if (!keys.length) throw new Error('vehicle must contain at least one field');
+  const unknown = keys.filter(k => !vehicleFraudModel.features.includes(k));
+  if (unknown.length) throw new Error(`Unknown vehicle fields: ${unknown.join(', ')}`);
+  for (const k of keys) if (typeof v[k] !== 'string' || !/^[\x20-\x7E]{1,40}$/.test(v[k] as string)) throw new Error(`vehicle.${k} must be 1–40 printable characters`);
+  return Object.fromEntries(keys.map(k => [k, (v[k] as string).trim()]));
+}
+// What language models receive: the claim without structured tabular fields.
+export function modelInput(claim: Claim) {
+  return { id: claim.id, description: claim.description, amount: claim.amount, currency: claim.currency };
 }
 export function parseDecision(value: unknown): Decision {
   const v = record(value);

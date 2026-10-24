@@ -57,6 +57,16 @@ test('Naive Bayes fits training features only and handles unseen categories', ()
   assert.equal(predict({ ...features, FraudFound_P: '1' }), value);
   assert.equal(predict(features), value);
 });
+test('the Worker model file reproduces the offline Naive Bayes scores exactly', async () => {
+  const { vehicleFraudModel } = await import('../src/vehicle-fraud-model.ts');
+  const { tabularFraudScore } = await import('../src/tabular.ts');
+  const examples = await loadVehicle();
+  const predict = trainNaiveBayes(examples.filter(e => e.split === 'train'));
+  for (const example of examples.filter(e => e.split === 'test').slice(0, 300)) assert.equal(tabularFraudScore(vehicleFraudModel, example.features).score, predict(example.features));
+  assert.deepEqual(vehicleFraudModel.features, featureNames);
+  const baseline = JSON.parse(await (await import('node:fs/promises')).readFile(new URL('../reports/vehicle-baseline.json', import.meta.url), 'utf8'));
+  assert.equal(vehicleFraudModel.threshold, baseline.validation.threshold);
+});
 test('unknown review labels stay unknown in reports', () => {
   const report = summarize([{ mode: 'hybrid', claimId: 'x', latencyMs: 1, correct: true, riskAbsoluteError: null, autoResolved: true, unsafeAuto: null, error: false, estimatedCostUsd: null }]);
   assert.equal(report.unsafeAutoCount, null); assert.equal(report.riskMAE, null); assert.equal(report.reviewLabeledCount, 0);

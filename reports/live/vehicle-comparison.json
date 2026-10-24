@@ -289,6 +289,40 @@
       }
     },
     "spearmanJevLlm": null,
+    "tabularGuard": {
+      "model": "vehicle-naive-bayes-v1",
+      "threshold": 0.269,
+      "flagged": 141,
+      "flaggedFraud": 21,
+      "jevOnly": {
+        "auto": {
+          "count": 0,
+          "fraud": 0
+        },
+        "fallback": {
+          "count": 2,
+          "fraud": 0
+        },
+        "human": {
+          "count": 1342,
+          "fraud": 90
+        }
+      },
+      "withGuard": {
+        "auto": {
+          "count": 0,
+          "fraud": 0
+        },
+        "fallback": {
+          "count": 2,
+          "fraud": 0
+        },
+        "human": {
+          "count": 1342,
+          "fraud": 90
+        }
+      }
+    },
     "offlineBaselineSameClaims": {
       "model": "Categorical Naive Bayes, 20 allowed tabular fields, fit on the training split",
       "claims": 1344,

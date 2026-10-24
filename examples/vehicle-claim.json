@@ -1,0 +1,16 @@
+{
+  "id": "demo-auto-002",
+  "description": "Rear bumper damaged in a parking lot. The other driver left before police arrived. Photos and a body shop estimate are attached.",
+  "amount": 2400,
+  "currency": "USD",
+  "vehicle": {
+    "Make": "Honda",
+    "AccidentArea": "Urban",
+    "VehicleCategory": "Sedan",
+    "VehiclePrice": "20000 to 29000",
+    "PoliceReportFiled": "No",
+    "WitnessPresent": "No",
+    "PastNumberOfClaims": "1",
+    "BasePolicy": "Collision"
+  }
+}

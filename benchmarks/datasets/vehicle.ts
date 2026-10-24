@@ -69,7 +69,7 @@ export function adaptVehicle(row: Record<string, string>): VehicleExample {
   // Source identifiers are hashed, and labels/demographics/investigation outcomes never enter the narrative.
   const id = 'vehicle-' + createHash('sha256').update(`vehicle:${row.PolicyNumber}`).digest('hex').slice(0, 20);
   const description = 'Structured vehicle insurance claim record. Facts are copied from tabular source fields; this is not an original claimant narrative. Claim amount and currency were not supplied.\n' + featureNames.map(name => `${name}: ${features[name]}`).join('\n');
-  return { claim: parseClaim({ id, description, amount: null, currency: null }), features, fraud: Number(row.FraudFound_P) as 0 | 1, split, group };
+  return { claim: parseClaim({ id, description, amount: null, currency: null, vehicle: features }), features, fraud: Number(row.FraudFound_P) as 0 | 1, split, group };
 }
 
 export async function loadVehicle(): Promise<VehicleExample[]> {

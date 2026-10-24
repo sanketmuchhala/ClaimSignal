@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseClaim } from '../src/domain.ts';
+import { modelInput, parseClaim } from '../src/domain.ts';
+import { tabularFraudScore } from '../src/tabular.ts';
+import type { TabularModel } from '../src/tabular.ts';
 import type { Decision, Prediction } from '../src/domain.ts';
 import { parseJev, evaluateJev } from '../src/jev.ts';
 import { evaluateLlm } from '../src/llm.ts';
@@ -65,4 +67,30 @@ test('deadline bounds an unresponsive provider', async () => {
 test('LLM adapter validates JSON and self-reported values', async () => {
   assert.equal((await evaluateLlm({ run: async () => ({ response: JSON.stringify(decision) }) }, claim)).decision.claimType, 'auto');
   for (const response of ['not JSON', JSON.stringify({ ...decision, claimType: 'invented' }), JSON.stringify({ ...decision, fraudRisk: 2 })]) await assert.rejects(evaluateLlm({ run: async () => ({ response }) }, claim));
+});
+const tabularModel: TabularModel = { name: 'test-model', features: ['A', 'B'], logPrior: [Math.log(0.5), Math.log(0.5)], logLikelihood: { A: { risky: [Math.log(0.1), Math.log(0.9)], safe: [Math.log(0.9), Math.log(0.1)] }, B: { x: [Math.log(0.5), Math.log(0.5)] } }, logUnseen: { A: [Math.log(0.5), Math.log(0.5)], B: [Math.log(0.5), Math.log(0.5)] }, threshold: 0.5, thresholdSelection: 'test' };
+test('tabular score marginalizes missing fields and uses the unseen-value term', () => {
+  assert.deepEqual(tabularFraudScore(tabularModel, {}), { score: 0.5, featuresUsed: 0 });
+  assert.ok(Math.abs(tabularFraudScore(tabularModel, { A: 'risky' }).score - 0.9) < 1e-12);
+  assert.ok(Math.abs(tabularFraudScore(tabularModel, { A: 'never-seen', B: 'x' }).score - 0.5) < 1e-12);
+  assert.equal(tabularFraudScore(tabularModel, { A: 'risky', B: 'x' }).featuresUsed, 2);
+});
+test('vehicle fields are validated and never reach language models', () => {
+  const withVehicle = parseClaim({ ...claim, vehicle: { Make: ' Honda ', PoliceReportFiled: 'No' } });
+  assert.deepEqual(withVehicle.vehicle, { Make: 'Honda', PoliceReportFiled: 'No' });
+  assert.deepEqual(modelInput(withVehicle), claim);
+  for (const vehicle of [{}, { Colour: 'red' }, { Make: 3 }, { Make: '' }, { Make: 'x'.repeat(41) }, { Make: 'line\nbreak' }, 'Honda']) assert.throws(() => parseClaim({ ...claim, vehicle }));
+});
+test('a tabular fraud flag blocks auto-resolution and skips the LLM', async () => {
+  const llmMustNotRun = async (): Promise<Prediction> => { throw new Error('Must not call'); };
+  const risky = { ...claim, vehicle: { A: 'risky' } }, safe = { ...claim, vehicle: { A: 'safe' } };
+  const blocked = await triage(risky, { jev: async () => prediction(), llm: llmMustNotRun }, undefined, 8000, tabularModel);
+  assert.equal(blocked.route, 'human_review'); assert.equal(blocked.reason, 'tabular_fraud_signal'); assert.equal(blocked.tabular?.flagged, true); assert.equal(blocked.attempts.length, 1);
+  const uncertain = await triage(risky, { jev: async () => prediction({ typeConfidence: 0.5 }), llm: llmMustNotRun }, undefined, 8000, tabularModel);
+  assert.equal(uncertain.reason, 'tabular_fraud_signal');
+  const specialist = await triage(risky, { jev: async () => prediction({ fraudRisk: 0.9 }), llm: llmMustNotRun }, undefined, 8000, tabularModel);
+  assert.equal(specialist.reason, 'specialist_review_required');
+  const allowed = await triage(safe, { jev: async () => prediction(), llm: llmMustNotRun }, undefined, 8000, tabularModel);
+  assert.equal(allowed.route, 'auto_resolved'); assert.equal(allowed.tabular?.flagged, false);
+  assert.equal((await triage(claim, { jev: async () => prediction(), llm: llmMustNotRun })).tabular, null);
 });

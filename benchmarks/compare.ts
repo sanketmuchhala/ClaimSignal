@@ -7,6 +7,7 @@ import type { ScoredLabel } from './fraud-metrics.ts';
 import { pairedBootstrap, quantile, spearman, weightedRanking } from './paired-stats.ts';
 import { loadVehicle } from './datasets/vehicle.ts';
 import { trainNaiveBayes } from './naive-bayes.ts';
+import { vehicleFraudModel } from '../src/vehicle-fraud-model.ts';
 
 interface Attempt { provider: 'jev' | 'llm'; model: string | null; latencyMs: number; usage: Usage | null; status: 'ok' | 'error' }
 interface Checkpoint {
@@ -150,6 +151,18 @@ else if (vehicle) {
       'hybrid-llm': { rocAuc: round(point('hybrid').rocAuc - point('llm').rocAuc), rocAuc95: ci('hybrid-llm.rocAuc'), averagePrecision: round(point('hybrid').averagePrecision - point('llm').averagePrecision), averagePrecision95: ci('hybrid-llm.averagePrecision') },
     },
     spearmanJevLlm: round(spearman(samples.jev.map(s => s.score), samples.llm.map(s => s.score))),
+    // Jev's routing with and without the deployed tabular guard, which sends flagged claims to a person.
+    tabularGuard: (() => {
+      const routed = scored.map((p, i) => {
+        const route = classifyRoute(pipelines.jev(p)!, defaultPolicy), flagged = offline[i].score >= vehicleFraudModel.threshold;
+        return { fraud: offline[i].label, flagged, route, guarded: flagged && route !== 'human' ? 'human' : route };
+      });
+      const summary = (key: 'route' | 'guarded') => Object.fromEntries((['auto', 'fallback', 'human'] as const).map(route => {
+        const group = routed.filter(r => r[key] === route);
+        return [route, { count: group.length, fraud: group.filter(r => r.fraud).length }];
+      }));
+      return { model: vehicleFraudModel.name, threshold: vehicleFraudModel.threshold, flagged: routed.filter(r => r.flagged).length, flaggedFraud: routed.filter(r => r.flagged && r.fraud).length, jevOnly: summary('route'), withGuard: summary('guarded') };
+    })(),
     offlineBaselineSameClaims: {
       model: 'Categorical Naive Bayes, 20 allowed tabular fields, fit on the training split', claims: offline.length,
       rocAuc: round(offlineRank()!.rocAuc), rocAuc95: offlineCi('rocAuc'), averagePrecision: round(offlineRank()!.averagePrecision), averagePrecision95: offlineCi('averagePrecision'),
