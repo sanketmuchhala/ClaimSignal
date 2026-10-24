@@ -62,9 +62,11 @@ const dispositions: Record<'hybrid' | 'llm_only', { autoFraud: number; autoNonFr
 const runId = `${mock ? 'mock' : 'live'}-${dataset}-${Date.now()}`;
 await mkdir('benchmark-results', { recursive: true });
 let stoppedEarly = false;
+let consecutiveEmptyPairs = 0;
 evaluation:
 for (let repeat = 0; repeat < repeats; repeat++) {
   for (const [index, fixture] of cases.entries()) {
+    let pairHasPrediction = false;
     const fake: Prediction = { decision: { claimType: fixture.expectedType, typeConfidence: fixture.claim.id === 'other-01' ? 0.4 : 0.95, fraudRisk: fixture.expectedRisk ?? 0, riskConfidence: 0.95, needsReviewProbability: fixture.reviewRequired ? 0.9 : 0.02 }, model: 'mock-fixture-oracle', usage: null };
     const providers = { jev: async () => mock ? fake : evaluateJev(ai, fixture.claim, models.jev), llm: async () => mock ? fake : evaluateLlm(ai, fixture.claim, models.llm) };
     // Alternate order to reduce systematic first-call bias; no warm-up calls are excluded.
@@ -86,12 +88,14 @@ for (let repeat = 0; repeat < repeats; repeat++) {
           attempts = [{ provider: 'llm', model: prediction.model, usage: prediction.usage, status: 'ok', latencyMs: performance.now() - start }];
         } catch { attempts = [{ provider: 'llm', model: null, usage: null, status: 'error', latencyMs: performance.now() - start }]; }
       }
+      if (prediction) pairHasPrediction = true;
       if (fixture.expectedFraud !== undefined && prediction) fraudScores[mode].push({ label: fixture.expectedFraud, score: prediction.decision.fraudRisk });
       if (fixture.expectedFraud !== undefined && autoResolved) dispositions[mode][fixture.expectedFraud ? 'autoFraud' : 'autoNonFraud']++;
       rows.push({ mode, claimId: fixture.claim.id, latencyMs: performance.now() - start, correct: prediction?.decision.claimType === fixture.expectedType, riskAbsoluteError: prediction && fixture.expectedRisk !== null ? Math.abs(prediction.decision.fraudRisk - fixture.expectedRisk) : null, autoResolved, unsafeAuto: fixture.reviewRequired === null ? null : autoResolved && fixture.reviewRequired, error: attempts.some(a => a.status === 'error'), estimatedCostUsd: cost(attempts, rates) });
       await appendFile(`benchmark-results/${runId}.jsonl`, JSON.stringify({ repeat, ...rows.at(-1), expectedFraud: fixture.expectedFraud, fraudScore: prediction?.decision.fraudRisk ?? null, attempts }) + '\n');
     }
-    if (!mock && rows.length >= 20 && rows.slice(-20).every(r => r.error && r.riskAbsoluteError === null && !r.correct)) { stoppedEarly = true; process.exitCode = 1; break evaluation; }
+    consecutiveEmptyPairs = pairHasPrediction ? 0 : consecutiveEmptyPairs + 1;
+    if (!mock && consecutiveEmptyPairs >= 10) { stoppedEarly = true; process.exitCode = 1; break evaluation; }
   }
 }
 const report = { kind: mock ? 'MOCK HARNESS CHECK — NOT MODEL PERFORMANCE' : `live ${dataset} evaluation`, dataset: dataset === 'vehicle' ? datasetInfo : 'synthetic fixtures', split: dataset === 'vehicle' ? split : null, availableCases, selectedCases: cases.length, stoppedEarly, plannedPredictions: repeats * cases.length * 2, completedPredictions: rows.length, fraud: dataset === 'vehicle' ? Object.fromEntries((['hybrid', 'llm_only'] as const).map(mode => [mode, { evaluatedPredictions: fraudScores[mode].length, metrics: fraudScores[mode].length ? fraudMetrics(fraudScores[mode], 0.5) : null, ...dispositions[mode] }])) : null, timestamp: new Date().toISOString(), models, rates, policy: defaultPolicy, repeats, fixtureCount: cases.length, hybrid: summarize(rows.filter(r => r.mode === 'hybrid')), llmOnly: summarize(rows.filter(r => r.mode === 'llm_only')), rows };
