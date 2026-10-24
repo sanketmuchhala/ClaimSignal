@@ -80,13 +80,51 @@ test('vehicle benchmark uses real adapter paths and checkpoints without fabricat
     assert.equal(result.status, 0, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.equal(report.completedPredictions, 8); assert.equal(report.hybrid.riskMAE, null); assert.equal(report.hybrid.unsafeAutoCount, null);
-    assert.equal(report.fraud.hybrid.evaluatedPredictions, 4);
+    assert.equal(report.fraud.hybrid.evaluatedPredictions, 4); assert.equal(report.fraud.jev_only.evaluatedPredictions, 4);
     const files = await readdir(join(cwd, 'benchmark-results'));
     const checkpoint = await readFile(join(cwd, 'benchmark-results', files.find(f => f.endsWith('.jsonl'))!), 'utf8');
     assert.equal(checkpoint.trim().split('\n').length, 8);
+    const lines = checkpoint.trim().split('\n').map(line => JSON.parse(line));
+    const hybrid = lines.find(l => l.mode === 'hybrid'), llmOnly = lines.find(l => l.mode === 'llm_only');
+    assert.equal(hybrid.decisions.jev.claimType, 'auto'); assert.equal(hybrid.reason, 'high_confidence_low_risk');
+    assert.equal(llmOnly.decisions.jev, null); assert.equal(llmOnly.decisions.llm.fraudRisk, 0.1);
+    const compare = new URL('../benchmarks/compare.ts', import.meta.url).pathname;
+    const comparison = JSON.parse(execFileSync(process.execPath, [compare, join('benchmark-results', files.find(f => f.endsWith('.jsonl'))!)], { cwd, encoding: 'utf8' }));
+    assert.equal(comparison.pairs, 4); assert.equal(comparison.fraud.scoredByAllPipelines, 4); assert.equal(comparison.classification, null);
+    assert.equal(comparison.gate.jev.auto.count, 4); assert.equal(comparison.providers.llm.calls, 4); assert.equal(comparison.operations.hybrid.modelCallsPerClaim, 1);
+    const checkpointPath = join('benchmark-results', files.find(f => f.endsWith('.jsonl'))!);
+    assert.throws(() => execFileSync(process.execPath, [compare, checkpointPath, checkpointPath], { cwd, stdio: 'pipe' }), /appears in more than one checkpoint row/);
     const failed = spawnSync(process.execPath, ['--import', stub, run, '--dataset=vehicle', '--limit=12'], { cwd, encoding: 'utf8', env: { ...process.env, CLOUDFLARE_ACCOUNT_ID: 'test', CLOUDFLARE_API_TOKEN: 'test', BENCHMARK_REPEATS: '1', CLAIMSIGNAL_TEST_FAILURE: '1' } });
     assert.equal(failed.status, 1);
     const failureReport = JSON.parse(failed.stdout);
     assert.equal(failureReport.stoppedEarly, true); assert.equal(failureReport.completedPredictions, 20); assert.equal(failureReport.fraud.hybrid.metrics, null);
+  } finally { await rm(cwd, { recursive: true, force: true }); }
+});
+
+test('throttled pairs are set aside and repeated, and offset resumes the same ordering', async () => {
+  const { mkdtemp, readdir, readFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const cwd = await mkdtemp(join(tmpdir(), 'claimsignal-throttle-'));
+  try {
+    const run = new URL('../benchmarks/run.ts', import.meta.url).pathname;
+    const stub = new URL('./helpers/cloudflare-stub.ts', import.meta.url).pathname;
+    const env = { ...process.env, CLOUDFLARE_ACCOUNT_ID: 'test', CLOUDFLARE_API_TOKEN: 'test', BENCHMARK_REPEATS: '1', BENCHMARK_THROTTLE_PAUSE_MS: '1' };
+    const all = JSON.parse(execFileSync(process.execPath, [run, '--dataset=vehicle', '--limit=5', '--validate-only'], { encoding: 'utf8' }));
+    const result = spawnSync(process.execPath, ['--import', stub, run, '--dataset=vehicle', '--offset=2', '--limit=3'], { cwd, encoding: 'utf8', env: { ...env, CLAIMSIGNAL_TEST_THROTTLE: '2' } });
+    assert.equal(result.status, 0, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(all.offset, 0); assert.equal(report.offset, 2); assert.equal(report.selectedCases, 3);
+    assert.equal(report.throttledCalls, 2); assert.equal(report.repeatedPairs, 1); assert.equal(report.completedPredictions, 6);
+    assert.equal(report.hybrid.errorRate, 0); assert.equal(report.llmOnly.errorRate, 0);
+    const files = await readdir(join(cwd, 'benchmark-results'));
+    const kept = (await readFile(join(cwd, 'benchmark-results', files.find(f => f.endsWith('.jsonl') && !f.endsWith('.throttled.jsonl'))!), 'utf8')).trim().split('\n');
+    const setAside = (await readFile(join(cwd, 'benchmark-results', files.find(f => f.endsWith('.throttled.jsonl'))!), 'utf8')).trim().split('\n');
+    assert.equal(kept.length, 6); assert.equal(setAside.length, 2); assert.equal(JSON.parse(setAside[0]).try, 0);
+    assert.throws(() => execFileSync(process.execPath, [run, '--dataset=synthetic', '--offset=12', '--validate-only'], { stdio: 'pipe' }));
+    const quota = spawnSync(process.execPath, ['--import', stub, run, '--dataset=vehicle', '--limit=3'], { cwd, encoding: 'utf8', env: { ...env, CLAIMSIGNAL_TEST_QUOTA: '1' } });
+    assert.equal(quota.status, 1);
+    const quotaReport = JSON.parse(quota.stdout);
+    assert.equal(quotaReport.stoppedEarly, true); assert.match(quotaReport.stopReason, /daily free allocation/); assert.equal(quotaReport.completedPredictions, 0);
   } finally { await rm(cwd, { recursive: true, force: true }); }
 });

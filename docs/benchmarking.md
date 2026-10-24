@@ -33,6 +33,26 @@ For vehicle data, fraud precision/recall/F1, ROC-AUC and average precision compa
 
 Gold review routes and rubric severity scores are absent, so `unsafeAutoCount` and risk MAE are `null`. `autoFraud` records automatically routed claims that carry a positive fraud label; it is a diagnostic, not an adjudicated routing-safety metric. Claim-type accuracy is only auto-category agreement, not evidence of multi-line classification performance.
 
-Fraud metrics are conditional on available model scores; `evaluatedPredictions`, completed/planned counts, and provider-error rates must be reported with them. Missing scores are not imputed as non-fraud. Raw per-attempt timings, resolved model names, token usage, expected fraud labels, and predictions are checkpointed to ignored JSONL files after each pipeline execution. Ten consecutive paired cases with no usable output stop the run with a nonzero exit code and an explicitly partial report. Checkpoints survive interruption; automatic resume is not yet implemented.
+Fraud metrics are conditional on available model scores; `evaluatedPredictions`, completed/planned counts, and provider-error rates must be reported with them. Missing scores are not imputed as non-fraud. Raw per-attempt timings, resolved model names, token usage, expected fraud labels, and predictions are checkpointed to ignored JSONL files after each paired case. Ten consecutive paired cases with no usable output stop the run with a nonzero exit code and an explicitly partial report.
+
+Cloudflare's account rate limiter answers HTTP 429 before any model runs, so a rejected call says nothing about either model. A pair that hits it is written to `<run>.throttled.jsonl`, excluded from metrics, and repeated after a pause that doubles from `BENCHMARK_THROTTLE_PAUSE_MS` (default 60 s, capped at ten times that). Eight rejections of the same pair, or a message that the Workers Free daily allocation is spent, stop the run with a `stopReason`. Resume with `--offset=N`, which continues the same deterministic ordering, and pass every checkpoint to `compare.ts`; it refuses a claim that appears in two of them.
+
+## Paired model comparison
+
+Hybrid scores mix models: when Jev routes a claim to the fallback, the hybrid suggestion is the LLM's. Checkpoints therefore record each model's own decision (`decisions.jev`, `decisions.llm`) alongside the route reason. `benchmarks/compare.ts` reads a checkpoint and compares three views of the same claims:
+
+- **Jev**: the primary decision from every hybrid run.
+- **LLM**: the LLM-only decision.
+- **Hybrid**: the pipeline's final suggestion, as deployed.
+
+```bash
+npm run benchmark:compare -- benchmark-results/<run>.jsonl --out=reports/<name>.json
+# An interrupted run and its resumption, merged:
+npm run benchmark:compare -- benchmark-results/<first>.jsonl benchmark-results/<resumed>.jsonl --out=reports/<name>.json
+```
+
+Fraud ROC-AUC and average precision use only claims scored by all three views. Their 95% intervals, and the intervals for the Jev−LLM and hybrid−LLM differences, come from a seeded paired percentile bootstrap (2,000 resamples over claims). Each draw resamples the same claims for every view, so model differences are not inflated by independent sampling noise. Latency, call counts, token usage, provider errors and cost are reported per pipeline and per provider. On vehicle data the offline Naive Bayes baseline is also scored on exactly the compared claims, fit on the training split only, with paired intervals against each model.
+
+`gate` applies the deployed routing policy to each model's own decision. The deployed service never lets LLM output auto-resolve a claim, because LLM confidence is self-reported. The LLM gate is therefore a counterfactual. It shows what the same thresholds would do if that model were primary.
 
 The offline Naive Bayes baseline uses the identical allowed fields. It fits on train, selects a cutoff on validation, and reports test results. It is a separate reproducible comparator; it does not replace Jev in the Worker or masquerade as live inference.

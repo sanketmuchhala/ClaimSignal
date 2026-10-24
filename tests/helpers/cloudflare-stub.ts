@@ -1,6 +1,9 @@
 // Test-only REST stub. Never used by the benchmark's live implementation.
 import assert from 'node:assert/strict';
+let throttle = Number(process.env.CLAIMSIGNAL_TEST_THROTTLE ?? 0);
 globalThis.fetch = async (_url, init) => {
+  if (throttle > 0) { throttle--; return Response.json({ success: false, errors: [{ code: 971 }] }, { status: 429 }); }
+  if (process.env.CLAIMSIGNAL_TEST_QUOTA === '1') return Response.json({ success: false, errors: [{ message: 'AiError: you have used up your daily free allocation of 10,000 neurons' }] }, { status: 429 });
   if (process.env.CLAIMSIGNAL_TEST_FAILURE === '1') return Response.json({ success: false }, { status: 503 });
   const request = JSON.parse(String(init?.body));
   const claim = request.model === 'typesafe/jev' ? request.input.state : JSON.parse(request.input.messages[1].content);
