@@ -18,16 +18,20 @@ export const questions = {
   },
 } as const;
 
+// Jev reports probabilities and scores rounded to two decimals, so exact sums are not guaranteed.
+const ROUNDING = 0.005;
+
 function distribution(value: unknown, keys: readonly string[]): Record<string, number> {
   const v = record(value);
   if (Object.keys(v).length !== keys.length || keys.some(k => !Object.hasOwn(v, k))) throw new Error('Incomplete probability distribution');
   const parsed = Object.fromEntries(keys.map(k => [k, unit(v[k])]));
-  if (Math.abs(Object.values(parsed).reduce((a, b) => a + b, 0) - 1) > 0.001) throw new Error('Probabilities must sum to one');
+  if (Math.abs(Object.values(parsed).reduce((a, b) => a + b, 0) - 1) > keys.length * ROUNDING + 1e-9) throw new Error('Probabilities must sum to one');
   return parsed;
 }
 
 export function parseJev(raw: unknown, model: string): Prediction {
-  const result = record(raw);
+  // Workers AI returns { state, result: { model, answers, usage } }; the input state is echoed alongside.
+  const result = record(record(raw).result);
   const answers = record(result.answers);
   const type = record(answers.claim_type);
   const risk = record(answers.fraud_risk);
@@ -37,7 +41,8 @@ export function parseJev(raw: unknown, model: string): Prediction {
   if (!claimTypes.includes(type.choice as typeof claimTypes[number]) || probabilities[type.choice as string] < Math.max(...Object.values(probabilities))) throw new Error('Invalid selected choice');
   const levels = distribution(risk.probabilities, ['0', '1', '2', '3', '4']);
   const expected = Object.entries(levels).reduce((sum, [level, p]) => sum + Number(level) * p, 0);
-  if (typeof risk.score !== 'number' || !Number.isFinite(risk.score) || Math.abs(risk.score - expected) > 0.01) throw new Error('Score does not match distribution');
+  // Worst case: the score's own rounding plus each level-weighted probability rounding (0+1+2+3+4).
+  if (typeof risk.score !== 'number' || !Number.isFinite(risk.score) || Math.abs(risk.score - expected) > 11 * ROUNDING + 1e-9) throw new Error('Score does not match distribution');
   return {
     decision: { claimType: type.choice as typeof claimTypes[number], typeConfidence: unit(type.confidence), fraudRisk: unit(risk.score / 4), riskConfidence: unit(risk.confidence), needsReviewProbability: unit(review.noul) },
     model: typeof result.model === 'string' ? result.model : model,

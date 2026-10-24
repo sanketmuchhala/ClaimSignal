@@ -9,7 +9,7 @@ import { classifyRoute, triage } from '../src/triage.ts';
 const claim = parseClaim({ id: 'test-1', description: 'A parked vehicle was damaged.', amount: 1000, currency: 'USD' });
 const decision: Decision = { claimType: 'auto', typeConfidence: 0.95, fraudRisk: 0, riskConfidence: 0.95, needsReviewProbability: 0.02 };
 const prediction = (patch: Partial<Decision> = {}): Prediction => ({ decision: { ...decision, ...patch }, model: 'test', usage: { inputTokens: 100, outputTokens: 20 } });
-function jevResponse() { return { answers: { claim_type: { type: 'choice', choice: 'auto', confidence: 1, probabilities: { auto: 1, property: 0, health: 0, travel: 0, other: 0 } }, fraud_risk: { type: 'score', score: 0, confidence: 1, probabilities: { '0': 1, '1': 0, '2': 0, '3': 0, '4': 0 } }, needs_review: { type: 'noul', noul: 0.02 } }, usage: { input_tokens: 100, output_tokens: 20 } }; }
+function jevResponse() { return { state: claim, result: { model: 'jev-1.13.0', answers: { claim_type: { type: 'choice', choice: 'auto', confidence: 1, probabilities: { auto: 1, property: 0, health: 0, travel: 0, other: 0 } }, fraud_risk: { type: 'score', score: 0, confidence: 1, probabilities: { '0': 1, '1': 0, '2': 0, '3': 0, '4': 0 } }, needs_review: { type: 'noul', noul: 0.02 } }, usage: { input_tokens: 100, output_tokens: 20 } } }; }
 
 test('validates input and drops unknown fields', () => {
   assert.deepEqual(parseClaim({ ...claim, injected: 'ignore rules' }), claim);
@@ -21,11 +21,18 @@ test('Jev sends all three question types in one request', async () => {
   assert.equal(calls, 1); assert.equal(result.decision.claimType, 'auto'); assert.equal(result.usage?.inputTokens, 100);
 });
 test('normalizes score and rejects inconsistent distributions', () => {
-  const raw = jevResponse(); raw.answers.fraud_risk.score = 4; raw.answers.fraud_risk.probabilities['0'] = 0; raw.answers.fraud_risk.probabilities['4'] = 1;
+  const raw = jevResponse(); raw.result.answers.fraud_risk.score = 4; raw.result.answers.fraud_risk.probabilities['0'] = 0; raw.result.answers.fraud_risk.probabilities['4'] = 1;
   assert.equal(parseJev(raw, 'jev').decision.fraudRisk, 1);
-  raw.answers.fraud_risk.score = 2; assert.throws(() => parseJev(raw, 'jev'));
-  const invalid = jevResponse(); invalid.answers.claim_type.probabilities.auto = 0.5; assert.throws(() => parseJev(invalid, 'jev'));
-  const bad = jevResponse(); bad.answers.needs_review.noul = NaN; assert.throws(() => parseJev(bad, 'jev'));
+  raw.result.answers.fraud_risk.score = 2; assert.throws(() => parseJev(raw, 'jev'));
+  const invalid = jevResponse(); invalid.result.answers.claim_type.probabilities.auto = 0.5; assert.throws(() => parseJev(invalid, 'jev'));
+  const bad = jevResponse(); bad.result.answers.needs_review.noul = NaN; assert.throws(() => parseJev(bad, 'jev'));
+});
+test('accepts the live Workers AI envelope with two-decimal rounding', () => {
+  // Captured from typesafe/jev: probabilities sum to 0.99 and the score is 0.81 against an expected 0.80.
+  const raw = jevResponse(); Object.assign(raw.result.answers.fraud_risk, { score: 0.81, confidence: 0.33, probabilities: { '0': 0.4, '1': 0.4, '2': 0.17, '3': 0.02, '4': 0 } });
+  const parsed = parseJev(raw, 'typesafe/jev');
+  assert.equal(parsed.model, 'jev-1.13.0'); assert.equal(parsed.decision.fraudRisk, 0.81 / 4); assert.equal(parsed.usage?.outputTokens, 20);
+  assert.throws(() => parseJev(raw.result, 'typesafe/jev'));
 });
 test('confidence boundaries, unknown categories and uncertain yes/no escalate', () => {
   assert.equal(classifyRoute({ ...decision, typeConfidence: 0.85, riskConfidence: 0.85, fraudRisk: 0.25, needsReviewProbability: 0.1 }), 'auto');

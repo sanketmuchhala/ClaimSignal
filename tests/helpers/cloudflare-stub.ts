@@ -7,11 +7,15 @@ globalThis.fetch = async (_url, init) => {
   assert.equal(claim.amount, null); assert.equal(claim.currency, null);
   assert.ok(!claim.description.includes('FraudFound_P'));
   const result = request.model === 'typesafe/jev' ? {
-    answers: {
-      claim_type: { type: 'choice', choice: 'auto', confidence: 1, probabilities: { auto: 1, property: 0, health: 0, travel: 0, other: 0 } },
-      fraud_risk: { type: 'score', score: 0, confidence: 1, probabilities: { '0': 1, '1': 0, '2': 0, '3': 0, '4': 0 } },
-      needs_review: { type: 'noul', noul: 0.02 },
-    }, usage: { input_tokens: 100, output_tokens: 20 },
+    state: claim,
+    result: {
+      model: 'jev-1.13.0',
+      answers: {
+        claim_type: { type: 'choice', choice: 'auto', confidence: 1, probabilities: { auto: 1, property: 0, health: 0, travel: 0, other: 0 } },
+        fraud_risk: { type: 'score', score: 0, confidence: 1, probabilities: { '0': 1, '1': 0, '2': 0, '3': 0, '4': 0 } },
+        needs_review: { type: 'noul', noul: 0.02 },
+      }, usage: { input_tokens: 100, output_tokens: 20 },
+    },
   } : { response: { claimType: 'auto', typeConfidence: 0.9, fraudRisk: 0.1, riskConfidence: 0.9, needsReviewProbability: 0.1 }, usage: { prompt_tokens: 100, completion_tokens: 20 } };
   return Response.json({ success: true, result });
 };
