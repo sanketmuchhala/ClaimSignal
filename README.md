@@ -31,6 +31,25 @@ Jev evaluates three independent questions against the same claim in one call:
 
 The fraud score measures a position on a rubric; it is **not** a calibrated probability that someone committed fraud. Jev confidence describes its output distribution, not a guarantee of correctness.
 
+## Full public dataset and measured baseline
+
+The repository now includes the complete [Vehicle Insurance Claim Fraud Detection dataset](https://www.kaggle.com/datasets/shivamb/vehicle-claim-fraud-detection): **15,420 historical auto-insurance records, including 923 fraud labels**. See the [dataset card](data/README.md) for its source, CC0 attribution, pinned checksum, input fields, and limitations.
+
+```bash
+npm run dataset:check       # Validate and adapt every record
+npm run dataset:evaluate    # Train/validate/test a real offline baseline
+```
+
+The offline baseline uses 9,224 training, 3,186 validation, and 3,010 held-out test records. Its measured test ROC-AUC is **0.7210**, with **15.28% fraud precision** and **24.86% fraud recall**. These are a modest starting point, not production performance. [Full measured results](reports/README.md).
+
+The dataset is also wired into the Jev-versus-LLM runner:
+
+```bash
+node --env-file=.env benchmarks/run.ts --dataset=vehicle --split=test --limit=20
+```
+
+Remove `--limit=20` to evaluate the complete test partition. Use `--split=all` for the full corpus. Live evaluation requires Cloudflare credentials and has not yet been run. Dataset labels never enter model inputs. This auto-only dataset cannot validate health, travel, or property classification, and its field-rendered descriptions are not original claimant narratives.
+
 ## Routing policy
 
 | Condition | Outcome |
@@ -76,7 +95,7 @@ curl http://localhost:8787/v1/triage \
 
 Set `TRIAGE_API_KEY` in your shell to the same value as `.dev.vars` before running the curl command. `GET /health` is public and only reports that the Worker is responding; it does not check provider readiness.
 
-The response includes `claimId`, `route`, `reason`, `decision`, `fallbackDecision`, provider attempts with timing and usage, a request ID, and a policy version. Responses are not cached. Invalid requests fail before inference; the endpoint limits bodies to 32 KiB and descriptions to 8,000 characters.
+The response includes `claimId`, `route`, `reason`, `decision`, `fallbackDecision`, provider attempts with timing and usage, a request ID, and a policy version. Unknown amounts and currencies may both be `null`; known amounts retain their numeric value and currency. Responses are not cached. Invalid requests fail before inference; the endpoint limits bodies to 32 KiB and descriptions to 8,000 characters.
 
 ## Benchmark against an LLM-only baseline
 
@@ -88,7 +107,7 @@ cp .env.example .env
 BENCHMARK_REPEATS=3 node --env-file=.env benchmarks/run.ts
 ```
 
-Reports are written to the ignored `benchmark-results/` directory. Missing prices, missing usage, and failed calls produce `null` cost rather than a misleading zero. The harness makes no retries and retains failures in the accuracy denominator. There are 12 hand-authored synthetic fixtures; they are useful for development, not evidence of production accuracy. See [benchmark methodology](docs/benchmarking.md).
+Reports are written to the ignored `benchmark-results/` directory. Missing prices, missing usage, and failed calls produce `null` cost rather than a misleading zero. The harness makes no retries and retains failures in the accuracy denominator. The default run uses 12 hand-authored smoke fixtures; use `--dataset=vehicle` for the full public dataset. See [benchmark methodology](docs/benchmarking.md).
 
 ## Deploy
 
@@ -107,7 +126,9 @@ src/jev.ts          Typed Jev questions and response validation
 src/llm.ts          Validated JSON fallback adapter
 src/triage.ts       Confidence policy, escalation and deadlines
 src/worker.ts       Authenticated HTTP endpoint
-benchmarks/         Synthetic fixtures, paired runner and metrics
+benchmarks/         Dataset adapters, paired runner, baseline and metrics
+data/               Full public CSV and provenance
+reports/            Reproducible offline evaluation results
 tests/             Routing, adapter, HTTP and metric tests
 ```
 
@@ -118,7 +139,8 @@ tests/             Routing, adapter, HTTP and metric tests
 - [x] Worker API, input limits, authentication, and failure handling
 - [x] Benchmark harness and automated tests
 - [ ] Live Cloudflare integration smoke test
-- [ ] Representative labeled dataset and threshold calibration
+- [x] Full public auto-claims dataset, grouped partitions, and measured offline baseline
+- [ ] Representative multi-line narratives and live Jev threshold calibration
 - [ ] Measured latency, accuracy, and cost comparison
 - [ ] Durable review queue, idempotent submission, and reviewer workflow
 

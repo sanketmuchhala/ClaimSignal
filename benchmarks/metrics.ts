@@ -3,7 +3,7 @@ export interface Rates { jev: { input: number; output: number }; llm: { input: n
 export interface Row {
   mode: 'hybrid' | 'llm_only'; claimId: string; latencyMs: number;
   correct: boolean; riskAbsoluteError: number | null; autoResolved: boolean;
-  unsafeAuto: boolean; error: boolean; estimatedCostUsd: number | null;
+  unsafeAuto: boolean | null; error: boolean; estimatedCostUsd: number | null;
 }
 export function cost(attempts: Attempt[], rates: Rates | null): number | null {
   if (!rates || attempts.some(a => a.status === 'error' || !a.usage)) return null;
@@ -22,7 +22,8 @@ export function summarize(rows: Row[]) {
     p95Ms: latencies[Math.ceil(latencies.length * 0.95) - 1],
     errorRate: rows.filter(r => r.error).length / rows.length,
     autoResolvedRate: rows.filter(r => r.autoResolved).length / rows.length,
-    unsafeAutoCount: rows.filter(r => r.unsafeAuto).length,
+    reviewLabeledCount: rows.filter(r => r.unsafeAuto !== null).length,
+    unsafeAutoCount: rows.some(r => r.unsafeAuto !== null) ? rows.filter(r => r.unsafeAuto === true).length : null,
     estimatedCostUsd: rows.every(r => r.estimatedCostUsd !== null) ? rows.reduce((sum, r) => sum + r.estimatedCostUsd!, 0) : null,
   };
 }

@@ -4,13 +4,20 @@
   "private": true,
   "type": "module",
   "description": "Real-time claims triage with typed Jev decisions on Cloudflare Workers",
-  "engines": { "node": ">=22.18.0" },
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "test": "node --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "dev": "npx wrangler@4.141.0 dev",
     "deploy": "npx wrangler@4.141.0 deploy",
-    "benchmark": "node benchmarks/run.ts"
+    "benchmark": "node benchmarks/run.ts",
+    "dataset:check": "node benchmarks/run.ts --dataset=vehicle --split=all --validate-only",
+    "dataset:evaluate": "node benchmarks/dataset-evaluation.ts"
   },
-  "devDependencies": { "@types/node": "22.20.2", "typescript": "5.9.3" }
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "typescript": "5.9.3"
+  }
 }

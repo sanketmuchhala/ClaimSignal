@@ -1,6 +1,6 @@
 export const claimTypes = ['auto', 'property', 'health', 'travel', 'other'] as const;
 export type ClaimType = typeof claimTypes[number];
-export interface Claim { id: string; description: string; amount: number; currency: string }
+export interface Claim { id: string; description: string; amount: number | null; currency: string | null }
 export interface Decision {
   claimType: ClaimType;
   typeConfidence: number;
@@ -25,8 +25,9 @@ export function parseClaim(value: unknown): Claim {
   const v = record(value);
   if (typeof v.id !== 'string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(v.id)) throw new Error('id must contain 1–80 letters, numbers, underscores or hyphens');
   if (typeof v.description !== 'string' || v.description.trim().length < 10 || v.description.length > 8000) throw new Error('description must contain 10–8000 characters');
-  if (typeof v.amount !== 'number' || !Number.isFinite(v.amount) || v.amount < 0 || v.amount > 1e9) throw new Error('amount must be a number between 0 and 1 billion');
-  if (typeof v.currency !== 'string' || !/^[A-Z]{3}$/.test(v.currency)) throw new Error('currency must be a three-letter uppercase code');
+  if (v.amount !== null && (typeof v.amount !== 'number' || !Number.isFinite(v.amount) || v.amount < 0 || v.amount > 1e9)) throw new Error('amount must be null or a number between 0 and 1 billion');
+  if (v.currency !== null && (typeof v.currency !== 'string' || !/^[A-Z]{3}$/.test(v.currency))) throw new Error('currency must be null or a three-letter uppercase code');
+  if ((v.amount === null) !== (v.currency === null)) throw new Error('Unknown amount and currency must both be null');
   return { id: v.id, description: v.description.trim(), amount: v.amount, currency: v.currency };
 }
 export function parseDecision(value: unknown): Decision {

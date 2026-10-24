@@ -1,0 +1,2 @@
+# Preserve the checksum of the upstream dataset on all platforms.
+data/raw/fraud_oracle.csv -text

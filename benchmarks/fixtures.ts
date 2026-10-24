@@ -1,6 +1,6 @@
 import type { Claim, ClaimType } from '../src/domain.ts';
 
-export interface Fixture { claim: Claim; expectedType: ClaimType; expectedRisk: number; reviewRequired: boolean }
+export interface Fixture { claim: Claim; expectedType: ClaimType; expectedRisk: number | null; reviewRequired: boolean | null; expectedFraud?: 0 | 1 }
 // Hand-authored synthetic smoke fixtures, not a representative insurance dataset.
 export const fixtures: Fixture[] = [
   ['auto-01', 'A parked car suffered a cracked bumper after a low speed collision. Repair estimate and photos agree. No injuries.', 'auto', 0, false],

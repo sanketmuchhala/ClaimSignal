@@ -1,0 +1,122 @@
+{
+  "kind": "MEASURED OFFLINE TABULAR BASELINE — NOT JEV OR LLM RESULTS",
+  "dataset": {
+    "name": "Vehicle Insurance Claim Fraud Detection",
+    "kaggle": "https://www.kaggle.com/datasets/shivamb/vehicle-claim-fraud-detection",
+    "mirror": "https://github.com/idris10x/vehicle-insurance-fraud-detection",
+    "mirrorCommit": "ee0193ce0a0f2da098dcd35256381ba31baf06c7",
+    "sourceGitBlob": "8513e8b1deb460c5ba35689caf4220dcc013a2d3",
+    "localSha256": "d7dab6086aa186fc82c607d50919067a1599cea45afb4965511fd7da9e935e09",
+    "rows": 15420,
+    "license": "CC0-1.0 (reported in the cited dataset research paper)",
+    "splitSeed": "claimsignal-vehicle-v1"
+  },
+  "totalRows": 15420,
+  "totalFraud": 923,
+  "totalNonFraud": 14497,
+  "uniqueFeatureGroups": 15368,
+  "splitMethod": "SHA-256 of allowed feature groups with fixed seed; 60/20/20 target proportions; no duplicate feature group crosses partitions",
+  "splits": {
+    "train": {
+      "rows": 9224,
+      "fraud": 540,
+      "nonFraud": 8684
+    },
+    "validation": {
+      "rows": 3186,
+      "fraud": 198,
+      "nonFraud": 2988
+    },
+    "test": {
+      "rows": 3010,
+      "fraud": 185,
+      "nonFraud": 2825
+    }
+  },
+  "model": "Categorical Naive Bayes with Laplace smoothing; 20 allowed features",
+  "features": [
+    "Month",
+    "WeekOfMonth",
+    "DayOfWeek",
+    "Make",
+    "AccidentArea",
+    "DayOfWeekClaimed",
+    "MonthClaimed",
+    "WeekOfMonthClaimed",
+    "PolicyType",
+    "VehicleCategory",
+    "VehiclePrice",
+    "Deductible",
+    "Days_Policy_Accident",
+    "Days_Policy_Claim",
+    "PastNumberOfClaims",
+    "AgeOfVehicle",
+    "PoliceReportFiled",
+    "WitnessPresent",
+    "NumberOfCars",
+    "BasePolicy"
+  ],
+  "thresholdSelection": "Maximum fraud F1 on validation, grid 0..1 step .001; tie-break precision then higher threshold",
+  "validation": {
+    "count": 3186,
+    "positives": 198,
+    "negatives": 2988,
+    "prevalence": 0.062146892655367235,
+    "threshold": 0.269,
+    "tp": 58,
+    "fp": 232,
+    "tn": 2756,
+    "fn": 140,
+    "accuracy": 0.8832391713747646,
+    "precision": 0.2,
+    "recall": 0.29292929292929293,
+    "f1": 0.23770491803278687,
+    "balancedAccuracy": 0.6076426919800414,
+    "rocAuc": 0.7170703014076508,
+    "averagePrecision": 0.15784971787776284
+  },
+  "test": {
+    "count": 3010,
+    "positives": 185,
+    "negatives": 2825,
+    "prevalence": 0.061461794019933555,
+    "threshold": 0.269,
+    "tp": 46,
+    "fp": 255,
+    "tn": 2570,
+    "fn": 139,
+    "accuracy": 0.8691029900332226,
+    "precision": 0.15282392026578073,
+    "recall": 0.24864864864864866,
+    "f1": 0.18930041152263374,
+    "balancedAccuracy": 0.5791915809614925,
+    "rocAuc": 0.7210418560153073,
+    "averagePrecision": 0.13204659973307775
+  },
+  "majorityBaseline": {
+    "count": 3010,
+    "positives": 185,
+    "negatives": 2825,
+    "prevalence": 0.061461794019933555,
+    "threshold": 0.5,
+    "tp": 0,
+    "fp": 0,
+    "tn": 2825,
+    "fn": 185,
+    "accuracy": 0.9385382059800664,
+    "precision": 0,
+    "recall": 0,
+    "f1": 0,
+    "balancedAccuracy": 0.5,
+    "rocAuc": 0.5,
+    "averagePrecision": 0.061461794019933555
+  },
+  "liveJevEvaluation": "not run — Cloudflare credentials required",
+  "limitations": [
+    "Historical auto-only tabular benchmark; does not validate multi-line classification",
+    "Descriptions are deterministic field renderings, not original narratives",
+    "Fraud labels do not provide gold review routes or rubric severity scores",
+    "Random grouped split is not a temporal or external validation",
+    "Posterior scores are not calibrated probabilities"
+  ]
+}
