@@ -60,6 +60,9 @@ test('analysis separates test doubles, incomplete runs, binary probabilities, an
   assert.equal(report.selective.byPredictedClassProbability!.at(-1)!.minConfidence, 0.8);
   assert.equal(report.selective.byVendorConfidence!.at(-1)!.minConfidence, 0.6);
   assert.equal(report.operations.costUsd, null);
+  assert.match(report.sampleWarnings.join(' '), /lacks a binary class/);
+  assert.equal(Object.values(report.plannedTargetCounts).reduce((a, b) => a + b, 0), 3);
+  assert.equal(Object.values(report.evaluatedTargetCounts).reduce((a, b) => a + b, 0), 1);
   assert.throws(() => analyze(plan, [first, first], metadata(plan)), /duplicate/);
   assert.throws(() => analyze(plan, [{ ...first, requestHash: 'wrong' }], metadata(plan)), /identity/);
   assert.throws(() => analyze(plan, [{ ...first, answer: { type: 'noul', noul: 1 } }], metadata(plan)), /raw response/);

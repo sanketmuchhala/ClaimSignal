@@ -9,5 +9,6 @@ Each implementation task is committed only after its checks pass. The next check
 | `8532411` | Added six versioned claims tasks and reproducible dataset manifests | 45 tests; typecheck; label exclusion, matched selection, split enforcement, and hash checks |
 | `c1b585b` | Added explicit live runner and full primitive response capture | 48 tests; typecheck; parser validation, CLI offline default, rate-limit stop, checkpoint retention, overwrite protection |
 | `f473034` | Added offline calibration and abstention analysis | 55 tests; typecheck; report CLI reproduction, raw-response integrity, metric/tie checks; old reports and model reproduced unchanged |
+| `27aaaa5` | Added matched train-only baselines and comparisons | 58 tests; typecheck; train isolation, source validation, matched-case CLI reproduction |
 
-No new live model experiments have been run as part of this milestone.
+At `27aaaa5`, a bounded pilot made 60 live Jev calls (20 claims per primitive). All succeeded. The sample has no fraud positives and does not support discrimination claims; see the [pilot report](../reports/experiments/pilot-20261024/README.md).

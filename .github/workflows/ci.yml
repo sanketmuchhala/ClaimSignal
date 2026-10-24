@@ -18,4 +18,5 @@ jobs:
       - run: npm run dataset:check
       - run: npm run dataset:evaluate
       - run: npm run report:live
+      - run: npm run report:experiments
       - run: git diff --exit-code -- reports

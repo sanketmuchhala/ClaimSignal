@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "planId": "e665e56eb6904b30572a840a459ff6cf18709cc56bc2ccbd301a761793108309",
+  "provenance": "live-provider",
+  "requestedModel": "typesafe/jev",
+  "codeRevision": "27aaaa59852a61ee7ca9119dd3ec38b423085e5c",
+  "workingTreeDirty": false,
+  "node": "v26.8.1",
+  "createdAt": "2026-10-24T19:06:44.433Z",
+  "execution": "sequential, one question per call, no retries",
+  "cost": null,
+  "costNote": "No rates supplied; usage is retained. Missing cost is not zero."
+}

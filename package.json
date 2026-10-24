@@ -16,6 +16,7 @@
     "experiment": "node experiments/run.ts",
     "experiment:report": "node experiments/report.ts",
     "experiment:compare": "node experiments/compare.ts",
+    "report:experiments": "node experiments/reproduce-pilot.ts",
     "benchmark:compare": "node benchmarks/compare.ts",
     "report:live": "node benchmarks/compare.ts reports/live/vehicle-test-part*.jsonl.gz --out=reports/live/vehicle-comparison.json > /dev/null && node benchmarks/compare.ts reports/live/synthetic.jsonl.gz --out=reports/live/synthetic-comparison.json > /dev/null && node benchmarks/review-questions.ts --from=reports/live/review-questions-synthetic.jsonl.gz --out=reports/live/review-questions-synthetic.json > /dev/null && node benchmarks/review-questions.ts --from=reports/live/review-questions-vehicle.jsonl.gz --out=reports/live/review-questions-vehicle.json > /dev/null && node benchmarks/charts.ts",
     "dataset:check": "node benchmarks/run.ts --dataset=vehicle --split=all --validate-only",

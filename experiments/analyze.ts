@@ -73,11 +73,23 @@ export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
   const latency = rows.map(r => r.latencyMs).sort((a, b) => a - b);
   const q = (p: number) => latency.length ? latency[Math.max(0, Math.ceil(p * latency.length) - 1)] : null;
   const knownUsage = rows.flatMap(r => r.usage ? [r.usage] : []);
+  const targetCounts = (ids: string[]) => ids.reduce<Record<string, number>>((counts, id) => {
+    const key = String(examples.get(id)!.target.value); counts[key] = (counts[key] ?? 0) + 1; return counts;
+  }, {});
+  const plannedTargetCounts = targetCounts(plan.examples.map(e => e.id));
+  const evaluatedTargetCounts = targetCounts(rows.filter(r => r.status === 'ok').map(r => r.exampleId));
+  const sampleWarnings: string[] = [];
+  if (plan.examples[0].target.kind === 'binary' && (!evaluatedTargetCounts['0'] || !evaluatedTargetCounts['1'])) sampleWarnings.push('Evaluated sample lacks a binary class: ROC-AUC is undefined and accuracy cannot establish discrimination.');
+  if (plan.task.question.type === 'score') {
+    const missing = plan.task.question.criteria.map((_, i) => String(i)).filter(k => !evaluatedTargetCounts[k]);
+    if (missing.length) sampleWarnings.push(`Rubric levels absent from evaluated sample: ${missing.join(', ')}. Performance on these levels is untested.`);
+  }
   return {
     schemaVersion: 1,
     kind: run.provenance === 'test-double' ? 'TEST DOUBLE — NOT MODEL PERFORMANCE' : plan.kind,
     planId: plan.id, task: plan.task, dataset: plan.dataset, run,
     resolvedModel: [...models][0] ?? null,
+    plannedTargetCounts, evaluatedTargetCounts, sampleWarnings,
     counts: { planned, attempted: rows.length, succeeded: successes, failed: errors.length, unattempted: planned - rows.length, uniqueFeatureGroups: new Set(plan.examples.map(e => e.group)).size },
     limitations: [...plan.task.limitations, 'Descriptive statistics only; no uncertainty intervals or threshold tuning.', 'Calibration and distribution metrics exclude failed/unattempted calls; coverage uses all planned claims.', 'Confidence ties are accepted together. Curves are exploratory, not a validated routing policy.', 'Class imbalance can make accuracy and overall calibration misleading; inspect prevalence and per-bin counts.'],
     metricConventions: { distributionNormalization: 'Divide validated rounded probabilities by their sum for metrics only; raw responses unchanged.', normalizedDistributions: normalizationCount, binaryThreshold: 0.5, logLossProbabilityFloor: 1e-15, vendorConfidence: 'Distribution statistic used for ranking only; never interpreted as correctness probability.', ordinalLoss: 'Absolute error in original rubric units; score is not an event probability.' },
