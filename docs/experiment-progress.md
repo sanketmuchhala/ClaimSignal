@@ -19,7 +19,8 @@ Each implementation task is committed only after its checks pass. The next check
 | `df4bf5d` | Declared the 1,000-claim Choice/Noul study before inference | Protocol committed before either study run; fixed plans, sample, questions, metrics, and LLM follow-up |
 | `56ffb47` | Captured both validation runs and reproducible grouped analyses | 68 tests; typecheck; 1,000/1,000 Choice responses, 969/1,000 Noul responses, reports regenerate without inference |
 | `107654a` | Published validation findings and documented protocol departures | Report findings checked against captured comparison and interval artifacts |
+| `401a6e8` | Restored omitted study commits and their results to the handoff log | Documentation correction; the log now records the completed Jev arms and pending LLM arm |
 
 At `27aaaa5`, a bounded pilot made 60 live Jev calls (20 claims per primitive). All succeeded. The sample has no fraud positives and does not support discrimination claims; see the [pilot report](../reports/experiments/pilot-20261024/README.md).
 
-The declared validation study has two completed Jev arms: Choice and Noul. The 70B LLM arm remains pending the quota reset specified in the [protocol](../reports/experiments/validation-20261024/PROTOCOL.md); no LLM comparison result is claimed yet. The latest report-reproduction, typecheck, dataset, and test checks pass at `107654a`; the handoff-log correction follows in the next documentation commit.
+The declared validation study has two completed Jev arms: Choice and Noul. The 70B LLM arm remains pending the quota reset specified in the [protocol](../reports/experiments/validation-20261024/PROTOCOL.md); no LLM comparison result is claimed yet. Report reproduction, typecheck, dataset validation, and all 68 tests passed at `107654a`.
