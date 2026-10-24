@@ -6,5 +6,6 @@ Each implementation task is committed only after its checks pass. The next check
 | --- | --- | --- |
 | `d9e130d` | Preserved pre-experiment ClaimSignal baseline | 41 tests; typecheck; mock harness; full dataset validation; offline model and live report reproduction; clean tracked diff |
 | `16bab53` | Recorded audit and claims research protocol | 41 tests; typecheck; whitespace validation |
+| `8532411` | Added six versioned claims tasks and reproducible dataset manifests | 45 tests; typecheck; label exclusion, matched selection, split enforcement, and hash checks |
 
 No new live model experiments have been run as part of this milestone.

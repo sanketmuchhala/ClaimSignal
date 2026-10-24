@@ -34,6 +34,26 @@ Subsequent independent milestones: matched deterministic/ML and LLM comparisons;
 - Use unique claims/groups for uncertainty analysis; keep repetitions and transformations grouped with their original claim. No confidence intervals based on treating repeats as independent examples.
 - No invented latency, costs, predictions, or customer outcomes. Offline fixture responses test code only. Live calls require an explicit execution command and a bounded manifest; never run on import or in CI.
 
+## Running the first experiments
+
+`npm run experiment -- --help` lists tasks. Planning is offline and defaults to 20 validation records (or explicitly labeled synthetic smoke cases):
+
+```bash
+npm run experiment -- --task=vehicle-fraud-choice-v1 --limit=20
+npm run experiment -- --task=vehicle-fraud-noul-v1 --limit=20
+npm run experiment -- --task=vehicle-evidence-score-v1 --limit=20
+```
+
+The first two predict the same historical outcome on identical inputs. The score task counts two explicit Yes fields: a field-reading control with deterministic ground truth, not a fraud score. Three `claims-*` tasks use the existing synthetic fixtures for category, review need, and inconsistency severity. No datasets are silently interchanged.
+
+For an intentional live run (may incur charges):
+
+```bash
+node --env-file=.env experiments/run.ts --task=vehicle-fraud-choice-v1 --limit=20 --execute --out=experiment-results/fraud-choice-validation-01
+```
+
+The output directory must be new. Each run saves `plan.json`, `run.json`, append-only `observations.jsonl`, and `completion.json`. Raw responses and rounded distributions are retained, along with actual resolved model version, usage, timing, request hashes, Git revision, and dirty-tree status. Credentials are never written. A rate limit or authorization failure stops execution without retries; other errors are explicit failed observations. Interrupted runs can be inspected without a completion file. Reruns use a new directory, never overwrite original evidence. This milestone does not implement resume, parallel requests, cost estimates, or threshold tuning.
+
 ## Primitive references
 
 Checked 2026-10-24: [Choice](https://docs.typesafe.ai/primitives/choice), [Score](https://docs.typesafe.ai/primitives/score), [Noul](https://docs.typesafe.ai/primitives/noul), and [confidence semantics](https://docs.typesafe.ai/confidence). The experiment protocol tests model quality rather than assuming vendor calibration claims. The [independent Jev paper](https://arxiv.org/abs/2609.37647) supplies reproduction hypotheses; its results do not establish claims-domain performance.
