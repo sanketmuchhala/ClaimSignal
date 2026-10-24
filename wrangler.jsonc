@@ -4,6 +4,11 @@
   "main": "src/worker.ts",
   "compatibility_date": "2026-10-23",
   "ai": { "binding": "AI" },
+  // Optional durable review queue and idempotent submissions (see README, "Review queue"):
+  //   npx wrangler@4.141.0 d1 create claimsignal
+  //   npx wrangler@4.141.0 d1 migrations apply claimsignal --remote
+  // then uncomment with the database_id that `d1 create` prints, and set REVIEWER_API_KEY as a secret.
+  // "d1_databases": [{ "binding": "DB", "database_name": "claimsignal", "database_id": "<id from d1 create>", "migrations_dir": "migrations" }],
   "vars": {
     "JEV_MODEL": "typesafe/jev",
     "LLM_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8"

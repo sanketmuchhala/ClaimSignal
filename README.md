@@ -66,6 +66,7 @@ Jev and `@cf/meta/llama-3.1-8b-instruct-fp8` were run on Workers AI against the 
 - Neither language model ranks historical fraud on field-rendered claims. A Naive Bayes model scored on the same claims reaches 0.691 [0.644, 0.737].
 - At the current thresholds Jev auto-resolves nothing; it sends 99.85% of vehicle claims straight to review. The LLM reports full confidence, so the same thresholds would auto-resolve every vehicle claim, fraud-labelled ones included.
 - The vehicle run stopped at the Workers Free plan's daily allocation. The remaining 1,663 test claims can be resumed with `--offset=1347`.
+- A follow-up split Jev's review question into one yes/no question per reason. 5 of 42 complete synthetic runs now auto-resolve, up from none, and no review-needed claim slipped through; and on vehicle records the signals show the blocker is missing information, since those records never describe the loss. [Review-question experiment](reports/review-questions.md).
 
 ![Latency per claim: hybrid pipeline median 163 ms, LLM only 2,547 ms](reports/figures/latency.svg)
 
@@ -87,7 +88,7 @@ The figures are drawn from the committed checkpoints by `npm run report:live`, a
 
 Thresholds live in [`src/triage.ts`](src/triage.ts). They are starting values requiring evaluation on representative claims. LLM confidence is self-reported and cannot override the review gate.
 
-`auto_resolved` means the **triage decision** is resolved. This service does not approve coverage, deny claims, or issue payments. `human_review` is a returned disposition; the calling application must persist it in its review queue. A persistent queue and reviewer UI are planned.
+`auto_resolved` means the **triage decision** is resolved. This service does not approve coverage, deny claims, or issue payments. With a D1 database bound, `human_review` results join a durable review queue (below); without one, the service is stateless and the caller must persist them.
 
 ## Run locally
 
@@ -135,7 +136,19 @@ cp .env.example .env
 BENCHMARK_REPEATS=3 node --env-file=.env benchmarks/run.ts
 ```
 
-Reports are written to the ignored `benchmark-results/` directory. Missing prices, missing usage, and failed calls produce `null` cost rather than a misleading zero. The harness does not retry model failures and retains them in the accuracy denominator. Calls rejected by Cloudflare's account rate limiter (HTTP 429) are not model failures: the pair is set aside in a `.throttled.jsonl` checkpoint and repeated after a pause, and a spent daily allocation stops the run with a `stopReason`. Resume with `--offset=N`, then compare merged checkpoints with `npm run benchmark:compare -- first.jsonl resumed.jsonl`. The default run uses 12 hand-authored smoke fixtures; use `--dataset=vehicle` for the full public dataset. See [benchmark methodology](docs/benchmarking.md).
+Reports are written to the ignored `benchmark-results/` directory. Missing prices, missing usage, and failed calls produce `null` cost rather than a misleading zero. The harness does not retry model failures and retains them in the accuracy denominator. Calls rejected by Cloudflare's account rate limiter (HTTP 429) are not model failures: the pair is set aside in a `.throttled.jsonl` checkpoint and repeated after a pause, and a spent daily allocation stops the run with a `stopReason`. Resume with `--offset=N`, then compare merged checkpoints with `npm run benchmark:compare -- first.jsonl resumed.jsonl`. The default run uses 24 hand-authored smoke fixtures; use `--dataset=vehicle` for the full public dataset. See [benchmark methodology](docs/benchmarking.md).
+
+## Review queue
+
+Bind a D1 database as `DB` and set a separate `REVIEWER_API_KEY` secret to store every triage result and queue the ones that need a person. Setup commands are in [`wrangler.jsonc`](wrangler.jsonc); the schema is [`migrations/0001_triage_results.sql`](migrations/0001_triage_results.sql). Claim text is never stored: rows hold the claim ID, route, reason and model decisions, and reviewers read the claim in the system of record.
+
+| Request | Purpose |
+| --- | --- |
+| `POST /v1/triage` with `Idempotency-Key: <key>` | Safe retries: the same key and body return the stored response with `Idempotent-Replayed: true`; the same key with a different body returns 422 |
+| `GET /v1/reviews?status=pending&limit=50` | The queue, oldest first; `status=resolved` lists recent decisions |
+| `POST /v1/reviews/{requestId}` with `{"outcome": "confirmed", "reviewer": "adjuster-7", "note": "…"}` | Record `confirmed`, `corrected` or `escalated` once; a second resolution returns 409 |
+
+Review endpoints use `Authorization: Bearer $REVIEWER_API_KEY` and return 503 until both the database and key are configured, so a triage key cannot read the queue.
 
 ## Deploy
 
@@ -153,7 +166,10 @@ src/domain.ts       Claims, typed results, runtime validation
 src/jev.ts          Typed Jev questions and response validation
 src/llm.ts          Validated JSON fallback adapter
 src/triage.ts       Confidence policy, escalation and deadlines
-src/worker.ts       Authenticated HTTP endpoint
+src/worker.ts       Authenticated HTTP endpoints
+src/reviews.ts      D1 storage, idempotency and review queue
+src/tabular.ts      Tabular fraud score for optional vehicle fields
+migrations/         D1 schema
 benchmarks/         Dataset adapters, paired runner, baseline and metrics
 data/               Full public CSV and provenance
 reports/            Offline baseline and live comparison results
@@ -171,7 +187,8 @@ tests/             Routing, adapter, HTTP and metric tests
 - [ ] Representative multi-line narratives and live Jev threshold calibration
 - [x] Measured latency, accuracy, and cost comparison (sample of the held-out split)
 - [ ] Live comparison on the remaining held-out claims
-- [ ] Durable review queue, idempotent submission, and reviewer workflow
+- [x] Durable review queue and idempotent submission (D1)
+- [ ] Reviewer UI
 
 ## References
 
