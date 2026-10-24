@@ -8,6 +8,8 @@ npm run report:live   # recomputes live/*-comparison.json and figures/*.svg from
 
 CI runs the same command and fails if the committed numbers or figures differ.
 
+These runs used Jev's original single review question. A follow-up experiment replaced it with one question per reason; see [`review-questions.md`](review-questions.md).
+
 Intervals are 95% paired percentile bootstrap intervals over claims (2,000 resamples, seed 20261024). Each model is scored on the same resampled claims in every draw.
 
 ## Summary

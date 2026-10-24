@@ -1,6 +1,6 @@
 import { mkdir, writeFile, appendFile } from 'node:fs/promises';
-import type { AI, Decision, Prediction } from '../src/domain.ts';
-import { record } from '../src/domain.ts';
+import type { Decision, Prediction } from '../src/domain.ts';
+import { cloudflareAI } from './cloudflare.ts';
 import { evaluateJev } from '../src/jev.ts';
 import { evaluateLlm } from '../src/llm.ts';
 import { triage, withTimeout, defaultPolicy } from '../src/triage.ts';
@@ -51,22 +51,10 @@ let throttledCalls = 0;
 // A spent daily allocation (Workers Free plan) will not clear with a pause, so it ends the run instead.
 let stopReason: string | null = null;
 const models = { jev: process.env.JEV_MODEL ?? 'typesafe/jev', llm: process.env.LLM_MODEL ?? '@cf/meta/llama-3.1-8b-instruct-fp8' };
-const ai: AI = {
-  async run(model, input) {
-    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account!)}/ai/run`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, input }), signal: AbortSignal.timeout(8000),
-    });
-    if (response.status === 429) {
-      throttledCalls++;
-      if (/daily free allocation/i.test(await response.text())) stopReason = 'Workers AI daily free allocation exhausted; resume with --offset after it resets at 00:00 UTC or on a paid plan';
-    }
-    if (!response.ok) throw new Error(`Cloudflare HTTP ${response.status}`);
-    const envelope = record(await response.json());
-    if (envelope.success !== true) throw new Error('Cloudflare inference failed');
-    return envelope.result;
-  },
-};
+const ai = cloudflareAI(account ?? '', token ?? '', dailyAllocationSpent => {
+  throttledCalls++;
+  if (dailyAllocationSpent) stopReason = 'Workers AI daily free allocation exhausted; resume with --offset after it resets at 00:00 UTC or on a paid plan';
+});
 const rateValues = ['JEV_INPUT_PER_MILLION', 'JEV_OUTPUT_PER_MILLION', 'LLM_INPUT_PER_MILLION', 'LLM_OUTPUT_PER_MILLION'].map(key => process.env[key]);
 if (rateValues.some(v => v !== undefined && v !== '' && (!Number.isFinite(Number(v)) || Number(v) < 0))) throw new Error('Token rates must be finite nonnegative numbers');
 const rates: Rates | null = !mock && rateValues.every(v => v !== undefined && v !== '') ? { jev: { input: Number(rateValues[0]), output: Number(rateValues[1]) }, llm: { input: Number(rateValues[2]), output: Number(rateValues[3]) } } : null;

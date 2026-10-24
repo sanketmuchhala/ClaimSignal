@@ -10,6 +10,8 @@ export interface Decision {
   fraudRisk: number;
   riskConfidence: number;
   needsReviewProbability: number;
+  // Per-reason review probabilities; needsReviewProbability is their maximum.
+  reviewSignals?: Record<string, number>;
 }
 export interface Usage { inputTokens: number; outputTokens: number }
 export interface Prediction { decision: Decision; model: string; usage: Usage | null }
@@ -49,10 +51,17 @@ function parseVehicleFields(value: unknown): Record<string, string> {
 export function modelInput(claim: Claim) {
   return { id: claim.id, description: claim.description, amount: claim.amount, currency: claim.currency };
 }
-export function parseDecision(value: unknown): Decision {
+export function parseDecision(value: unknown, reviewKeys: readonly string[] = []): Decision {
   const v = record(value);
   if (!claimTypes.includes(v.claimType as ClaimType)) throw new Error('Unknown claim type');
-  return { claimType: v.claimType as ClaimType, typeConfidence: unit(v.typeConfidence), fraudRisk: unit(v.fraudRisk), riskConfidence: unit(v.riskConfidence), needsReviewProbability: unit(v.needsReviewProbability) };
+  const decision: Decision = { claimType: v.claimType as ClaimType, typeConfidence: unit(v.typeConfidence), fraudRisk: unit(v.fraudRisk), riskConfidence: unit(v.riskConfidence), needsReviewProbability: 0 };
+  if (v.reviewSignals !== undefined) {
+    const signals = record(v.reviewSignals);
+    if (reviewKeys.some(k => !Object.hasOwn(signals, k)) || Object.keys(signals).some(k => !reviewKeys.includes(k))) throw new Error('reviewSignals must answer exactly the review questions');
+    decision.reviewSignals = Object.fromEntries(reviewKeys.map(k => [k, unit(signals[k])]));
+    decision.needsReviewProbability = Math.max(...Object.values(decision.reviewSignals));
+  } else decision.needsReviewProbability = unit(v.needsReviewProbability);
+  return decision;
 }
 export function parseUsage(value: unknown): Usage | null {
   if (!value || typeof value !== 'object') return null;

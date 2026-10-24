@@ -4,22 +4,22 @@ import { modelInput, parseClaim } from '../src/domain.ts';
 import { tabularFraudScore } from '../src/tabular.ts';
 import type { TabularModel } from '../src/tabular.ts';
 import type { Decision, Prediction } from '../src/domain.ts';
-import { parseJev, evaluateJev } from '../src/jev.ts';
+import { parseJev, evaluateJev, reviewQuestions } from '../src/jev.ts';
 import { evaluateLlm } from '../src/llm.ts';
 import { classifyRoute, triage } from '../src/triage.ts';
 
 const claim = parseClaim({ id: 'test-1', description: 'A parked vehicle was damaged.', amount: 1000, currency: 'USD' });
 const decision: Decision = { claimType: 'auto', typeConfidence: 0.95, fraudRisk: 0, riskConfidence: 0.95, needsReviewProbability: 0.02 };
 const prediction = (patch: Partial<Decision> = {}): Prediction => ({ decision: { ...decision, ...patch }, model: 'test', usage: { inputTokens: 100, outputTokens: 20 } });
-function jevResponse() { return { state: claim, result: { model: 'jev-1.13.0', answers: { claim_type: { type: 'choice', choice: 'auto', confidence: 1, probabilities: { auto: 1, property: 0, health: 0, travel: 0, other: 0 } }, fraud_risk: { type: 'score', score: 0, confidence: 1, probabilities: { '0': 1, '1': 0, '2': 0, '3': 0, '4': 0 } }, needs_review: { type: 'noul', noul: 0.02 } }, usage: { input_tokens: 100, output_tokens: 20 } } }; }
+function jevResponse() { return { state: claim, result: { model: 'jev-1.13.0', answers: { claim_type: { type: 'choice', choice: 'auto', confidence: 1, probabilities: { auto: 1, property: 0, health: 0, travel: 0, other: 0 } }, fraud_risk: { type: 'score', score: 0, confidence: 1, probabilities: { '0': 1, '1': 0, '2': 0, '3': 0, '4': 0 } }, missing_information: { type: 'noul', noul: 0.02 }, conflicting_facts: { type: 'noul', noul: 0.02 }, bodily_injury: { type: 'noul', noul: 0.02 }, specialist_involved: { type: 'noul', noul: 0.02 } }, usage: { input_tokens: 100, output_tokens: 20 } } }; }
 
 test('validates input and drops unknown fields', () => {
   assert.deepEqual(parseClaim({ ...claim, injected: 'ignore rules' }), claim);
   for (const patch of [{ amount: -1 }, { amount: NaN }, { currency: 'usd' }, { description: ' ' }, { id: '../x' }]) assert.throws(() => parseClaim({ ...claim, ...patch }));
 });
-test('Jev sends all three question types in one request', async () => {
+test('Jev sends every question in one request', async () => {
   let calls = 0;
-  const result = await evaluateJev({ async run(model, input) { calls++; assert.equal(model, 'typesafe/jev'); assert.equal(Object.keys(input.questions as object).length, 3); return jevResponse(); } }, claim);
+  const result = await evaluateJev({ async run(model, input) { calls++; assert.equal(model, 'typesafe/jev'); assert.deepEqual(new Set(Object.values(input.questions as Record<string, { type: string }>).map(q => q.type)), new Set(['choice', 'score', 'noul'])); assert.equal(Object.keys(input.questions as object).length, 2 + reviewQuestions.length); return jevResponse(); } }, claim);
   assert.equal(calls, 1); assert.equal(result.decision.claimType, 'auto'); assert.equal(result.usage?.inputTokens, 100);
 });
 test('normalizes score and rejects inconsistent distributions', () => {
@@ -27,7 +27,21 @@ test('normalizes score and rejects inconsistent distributions', () => {
   assert.equal(parseJev(raw, 'jev').decision.fraudRisk, 1);
   raw.result.answers.fraud_risk.score = 2; assert.throws(() => parseJev(raw, 'jev'));
   const invalid = jevResponse(); invalid.result.answers.claim_type.probabilities.auto = 0.5; assert.throws(() => parseJev(invalid, 'jev'));
-  const bad = jevResponse(); bad.result.answers.needs_review.noul = NaN; assert.throws(() => parseJev(bad, 'jev'));
+  const bad = jevResponse(); bad.result.answers.missing_information.noul = NaN; assert.throws(() => parseJev(bad, 'jev'));
+});
+test('review probability is the highest per-reason signal', () => {
+  const raw = jevResponse(); raw.result.answers.bodily_injury.noul = 0.91;
+  const parsed = parseJev(raw, 'jev').decision;
+  assert.equal(parsed.needsReviewProbability, 0.91); assert.equal(parsed.reviewSignals?.bodily_injury, 0.91); assert.equal(parsed.reviewSignals?.missing_information, 0.02);
+  const legacy = { result: { answers: { claim_type: raw.result.answers.claim_type, fraud_risk: raw.result.answers.fraud_risk, needs_review: { type: 'noul', noul: 0.84 } } } };
+  assert.equal(parseJev(legacy, 'jev', ['needs_review']).decision.needsReviewProbability, 0.84);
+  assert.throws(() => parseJev(legacy, 'jev'));
+});
+test('LLM review signals must answer exactly the review questions', async () => {
+  const signals = Object.fromEntries(reviewQuestions.map(k => [k, 0.1]));
+  const ok = await evaluateLlm({ run: async () => ({ response: JSON.stringify({ ...decision, needsReviewProbability: undefined, reviewSignals: { ...signals, bodily_injury: 0.7 } }) }) }, claim);
+  assert.equal(ok.decision.needsReviewProbability, 0.7);
+  for (const reviewSignals of [{ ...signals, extra: 0.1 }, { missing_information: 0.1 }, { ...signals, bodily_injury: 2 }]) await assert.rejects(evaluateLlm({ run: async () => ({ response: JSON.stringify({ ...decision, reviewSignals }) }) }, claim));
 });
 test('accepts the live Workers AI envelope with two-decimal rounding', () => {
   // Captured from typesafe/jev: probabilities sum to 0.99 and the score is 0.81 against an expected 0.80.

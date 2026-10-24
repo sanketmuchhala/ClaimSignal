@@ -1,0 +1,449 @@
+{
+  "kind": "JEV REVIEW-QUESTION A/B ON IDENTICAL CLAIMS",
+  "source": "reports/live/review-questions-synthetic.jsonl.gz",
+  "claims": 24,
+  "policy": {
+    "confidence": 0.85,
+    "maxAutoRisk": 0.25,
+    "specialistRisk": 0.7,
+    "maxAutoReviewProbability": 0.1,
+    "specialistReviewProbability": 0.8
+  },
+  "tabularModel": "vehicle-naive-bayes-v1",
+  "sets": {
+    "v1": {
+      "calls": 72,
+      "errors": 0,
+      "latencyMs": {
+        "p05": 158.1736,
+        "median": 179.0344,
+        "p95": 315.5795
+      },
+      "meanInputTokens": 590.8,
+      "meanOutputTokens": 87,
+      "reviewProbability": {
+        "p05": 0.24,
+        "median": 0.455,
+        "p95": 0.9345
+      },
+      "reviewSignals": null,
+      "routes": {
+        "auto": {
+          "count": 0
+        },
+        "fallback": {
+          "count": 42,
+          "reviewRequired": 0
+        },
+        "human": {
+          "count": 30,
+          "reviewRequired": 30
+        }
+      },
+      "routesWithTabularGuard": null,
+      "typeAccuracy": 1,
+      "riskMAE": 0.0161,
+      "reviewAgreementAtHalf": 0.9583,
+      "cleanAutoResolved": 0,
+      "cleanRuns": 42,
+      "unsafeAuto": 0
+    },
+    "v2": {
+      "calls": 72,
+      "errors": 0,
+      "latencyMs": {
+        "p05": 164.2045,
+        "median": 182.1579,
+        "p95": 392.1798
+      },
+      "meanInputTokens": 709.8,
+      "meanOutputTokens": 146,
+      "reviewProbability": {
+        "p05": 0.0855,
+        "median": 0.225,
+        "p95": 0.9745
+      },
+      "reviewSignals": {
+        "missing_information": {
+          "p05": 0.0855,
+          "median": 0.205,
+          "p95": 0.9545
+        },
+        "conflicting_facts": {
+          "p05": 0.05,
+          "median": 0.07,
+          "p95": 0.8945
+        },
+        "bodily_injury": {
+          "p05": 0.01,
+          "median": 0.03,
+          "p95": 0.9745
+        },
+        "specialist_involved": {
+          "p05": 0.02,
+          "median": 0.04,
+          "p95": 0.3635
+        }
+      },
+      "routes": {
+        "auto": {
+          "count": 5,
+          "reviewRequired": 0
+        },
+        "fallback": {
+          "count": 37,
+          "reviewRequired": 0
+        },
+        "human": {
+          "count": 30,
+          "reviewRequired": 30
+        }
+      },
+      "routesWithTabularGuard": null,
+      "typeAccuracy": 1,
+      "riskMAE": 0.0169,
+      "reviewAgreementAtHalf": 1,
+      "cleanAutoResolved": 5,
+      "cleanRuns": 42,
+      "unsafeAuto": 0
+    }
+  },
+  "fixtures": [
+    {
+      "id": "auto-01",
+      "reviewRequired": false,
+      "v1Review": 0.35,
+      "v1Route": "fallback",
+      "v2Review": 0.1,
+      "v2Route": "auto",
+      "v2Signals": {
+        "missing_information": 0.1,
+        "conflicting_facts": 0.05,
+        "bodily_injury": 0.03,
+        "specialist_involved": 0.03
+      }
+    },
+    {
+      "id": "auto-02",
+      "reviewRequired": true,
+      "v1Review": 0.94,
+      "v1Route": "human",
+      "v2Review": 0.95,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.63,
+        "conflicting_facts": 0.95,
+        "bodily_injury": 0.04,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "property-01",
+      "reviewRequired": false,
+      "v1Review": 0.35,
+      "v1Route": "fallback",
+      "v2Review": 0.09,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.09,
+        "conflicting_facts": 0.06,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.05
+      }
+    },
+    {
+      "id": "property-02",
+      "reviewRequired": true,
+      "v1Review": 0.8,
+      "v1Route": "human",
+      "v2Review": 0.89,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.66,
+        "conflicting_facts": 0.89,
+        "bodily_injury": 0.03,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "health-01",
+      "reviewRequired": false,
+      "v1Review": 0.38,
+      "v1Route": "fallback",
+      "v2Review": 0.19,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.19,
+        "conflicting_facts": 0.08,
+        "bodily_injury": 0.1,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "health-02",
+      "reviewRequired": true,
+      "v1Review": 0.9,
+      "v1Route": "human",
+      "v2Review": 0.87,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.55,
+        "conflicting_facts": 0.87,
+        "bodily_injury": 0.31,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "travel-01",
+      "reviewRequired": false,
+      "v1Review": 0.35,
+      "v1Route": "fallback",
+      "v2Review": 0.19,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.19,
+        "conflicting_facts": 0.07,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.03
+      }
+    },
+    {
+      "id": "travel-02",
+      "reviewRequired": true,
+      "v1Review": 0.81,
+      "v1Route": "human",
+      "v2Review": 0.63,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.28,
+        "conflicting_facts": 0.63,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "other-01",
+      "reviewRequired": true,
+      "v1Review": 0.92,
+      "v1Route": "human",
+      "v2Review": 0.97,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.97,
+        "conflicting_facts": 0.06,
+        "bodily_injury": 0.16,
+        "specialist_involved": 0.03
+      }
+    },
+    {
+      "id": "auto-03",
+      "reviewRequired": true,
+      "v1Review": 0.92,
+      "v1Route": "human",
+      "v2Review": 0.97,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.32,
+        "conflicting_facts": 0.05,
+        "bodily_injury": 0.97,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "property-03",
+      "reviewRequired": false,
+      "v1Review": 0.4,
+      "v1Route": "fallback",
+      "v2Review": 0.12,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.12,
+        "conflicting_facts": 0.06,
+        "bodily_injury": 0.03,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "travel-03",
+      "reviewRequired": false,
+      "v1Review": 0.23,
+      "v1Route": "fallback",
+      "v2Review": 0.16,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.16,
+        "conflicting_facts": 0.05,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.02
+      }
+    },
+    {
+      "id": "auto-04",
+      "reviewRequired": false,
+      "v1Review": 0.24,
+      "v1Route": "fallback",
+      "v2Review": 0.08,
+      "v2Route": "auto",
+      "v2Signals": {
+        "missing_information": 0.08,
+        "conflicting_facts": 0.06,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "auto-05",
+      "reviewRequired": false,
+      "v1Review": 0.53,
+      "v1Route": "fallback",
+      "v2Review": 0.15,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.15,
+        "conflicting_facts": 0.05,
+        "bodily_injury": 0.03,
+        "specialist_involved": 0.03
+      }
+    },
+    {
+      "id": "property-04",
+      "reviewRequired": false,
+      "v1Review": 0.26,
+      "v1Route": "fallback",
+      "v2Review": 0.11,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.11,
+        "conflicting_facts": 0.07,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.03
+      }
+    },
+    {
+      "id": "property-05",
+      "reviewRequired": false,
+      "v1Review": 0.43,
+      "v1Route": "fallback",
+      "v2Review": 0.35,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.11,
+        "conflicting_facts": 0.07,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.35
+      }
+    },
+    {
+      "id": "health-03",
+      "reviewRequired": false,
+      "v1Review": 0.26,
+      "v1Route": "fallback",
+      "v2Review": 0.13,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.13,
+        "conflicting_facts": 0.07,
+        "bodily_injury": 0.05,
+        "specialist_involved": 0.02
+      }
+    },
+    {
+      "id": "health-04",
+      "reviewRequired": false,
+      "v1Review": 0.47,
+      "v1Route": "fallback",
+      "v2Review": 0.25,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.25,
+        "conflicting_facts": 0.08,
+        "bodily_injury": 0.05,
+        "specialist_involved": 0.03
+      }
+    },
+    {
+      "id": "travel-04",
+      "reviewRequired": false,
+      "v1Review": 0.3,
+      "v1Route": "fallback",
+      "v2Review": 0.21,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.21,
+        "conflicting_facts": 0.07,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.02
+      }
+    },
+    {
+      "id": "travel-05",
+      "reviewRequired": false,
+      "v1Review": 0.4,
+      "v1Route": "fallback",
+      "v2Review": 0.18,
+      "v2Route": "fallback",
+      "v2Signals": {
+        "missing_information": 0.18,
+        "conflicting_facts": 0.14,
+        "bodily_injury": 0.01,
+        "specialist_involved": 0.03
+      }
+    },
+    {
+      "id": "auto-06",
+      "reviewRequired": true,
+      "v1Review": 0.94,
+      "v1Route": "human",
+      "v2Review": 0.98,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.44,
+        "conflicting_facts": 0.05,
+        "bodily_injury": 0.98,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "property-06",
+      "reviewRequired": true,
+      "v1Review": 0.9,
+      "v1Route": "human",
+      "v2Review": 0.8,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.72,
+        "conflicting_facts": 0.8,
+        "bodily_injury": 0.02,
+        "specialist_involved": 0.04
+      }
+    },
+    {
+      "id": "other-02",
+      "reviewRequired": true,
+      "v1Review": 0.91,
+      "v1Route": "human",
+      "v2Review": 0.95,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.95,
+        "conflicting_facts": 0.05,
+        "bodily_injury": 0.27,
+        "specialist_involved": 0.02
+      }
+    },
+    {
+      "id": "health-05",
+      "reviewRequired": true,
+      "v1Review": 0.86,
+      "v1Route": "human",
+      "v2Review": 0.92,
+      "v2Route": "human",
+      "v2Signals": {
+        "missing_information": 0.76,
+        "conflicting_facts": 0.07,
+        "bodily_injury": 0.9,
+        "specialist_involved": 0.92
+      }
+    }
+  ]
+}

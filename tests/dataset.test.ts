@@ -131,7 +131,7 @@ test('throttled pairs are set aside and repeated, and offset resumes the same or
     const kept = (await readFile(join(cwd, 'benchmark-results', files.find(f => f.endsWith('.jsonl') && !f.endsWith('.throttled.jsonl'))!), 'utf8')).trim().split('\n');
     const setAside = (await readFile(join(cwd, 'benchmark-results', files.find(f => f.endsWith('.throttled.jsonl'))!), 'utf8')).trim().split('\n');
     assert.equal(kept.length, 6); assert.equal(setAside.length, 2); assert.equal(JSON.parse(setAside[0]).try, 0);
-    assert.throws(() => execFileSync(process.execPath, [run, '--dataset=synthetic', '--offset=12', '--validate-only'], { stdio: 'pipe' }));
+    assert.throws(() => execFileSync(process.execPath, [run, '--dataset=synthetic', '--offset=100000', '--validate-only'], { stdio: 'pipe' }));
     const quota = spawnSync(process.execPath, ['--import', stub, run, '--dataset=vehicle', '--limit=3'], { cwd, encoding: 'utf8', env: { ...env, CLAIMSIGNAL_TEST_QUOTA: '1' } });
     assert.equal(quota.status, 1);
     const quotaReport = JSON.parse(quota.stdout);

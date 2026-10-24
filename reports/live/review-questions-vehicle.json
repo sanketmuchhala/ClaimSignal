@@ -1,0 +1,121 @@
+{
+  "kind": "JEV REVIEW-QUESTION A/B ON IDENTICAL CLAIMS",
+  "source": "reports/live/review-questions-vehicle.jsonl.gz",
+  "claims": 300,
+  "policy": {
+    "confidence": 0.85,
+    "maxAutoRisk": 0.25,
+    "specialistRisk": 0.7,
+    "maxAutoReviewProbability": 0.1,
+    "specialistReviewProbability": 0.8
+  },
+  "tabularModel": "vehicle-naive-bayes-v1",
+  "sets": {
+    "v1": {
+      "calls": 300,
+      "errors": 0,
+      "latencyMs": {
+        "p05": 152.3388,
+        "median": 175.9488,
+        "p95": 309.5632
+      },
+      "meanInputTokens": 792.8,
+      "meanOutputTokens": 87,
+      "reviewProbability": {
+        "p05": 0.82,
+        "median": 0.84,
+        "p95": 0.86
+      },
+      "reviewSignals": null,
+      "routes": {
+        "auto": {
+          "count": 0
+        },
+        "fallback": {
+          "count": 1,
+          "fraud": 0
+        },
+        "human": {
+          "count": 299,
+          "fraud": 21
+        }
+      },
+      "routesWithTabularGuard": {
+        "auto": {
+          "count": 0
+        },
+        "fallback": {
+          "count": 1,
+          "fraud": 0
+        },
+        "human": {
+          "count": 299,
+          "fraud": 21
+        }
+      }
+    },
+    "v2": {
+      "calls": 300,
+      "errors": 0,
+      "latencyMs": {
+        "p05": 157.1723,
+        "median": 180.8316,
+        "p95": 347.7048
+      },
+      "meanInputTokens": 911.8,
+      "meanOutputTokens": 146,
+      "reviewProbability": {
+        "p05": 0.93,
+        "median": 0.94,
+        "p95": 0.95
+      },
+      "reviewSignals": {
+        "missing_information": {
+          "p05": 0.93,
+          "median": 0.94,
+          "p95": 0.95
+        },
+        "conflicting_facts": {
+          "p05": 0.11,
+          "median": 0.255,
+          "p95": 0.57
+        },
+        "bodily_injury": {
+          "p05": 0.1595,
+          "median": 0.19,
+          "p95": 0.25
+        },
+        "specialist_involved": {
+          "p05": 0.03,
+          "median": 0.03,
+          "p95": 0.03
+        }
+      },
+      "routes": {
+        "auto": {
+          "count": 0
+        },
+        "fallback": {
+          "count": 0
+        },
+        "human": {
+          "count": 300,
+          "fraud": 21
+        }
+      },
+      "routesWithTabularGuard": {
+        "auto": {
+          "count": 0
+        },
+        "fallback": {
+          "count": 0
+        },
+        "human": {
+          "count": 300,
+          "fraud": 21
+        }
+      }
+    }
+  },
+  "fixtures": null
+}
