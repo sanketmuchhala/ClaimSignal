@@ -69,6 +69,16 @@ The reporter makes no model calls, refuses to overwrite a report, checks request
 - Reported probabilities rounded by Jev are normalized by their sum for distribution metrics only. Raw values remain unchanged; the number of affected responses is reported. Log loss uses a stated 1e-15 probability floor for zero-probability outcomes.
 - Small-sample plots and ECE do not establish calibration. Reports include bin sizes, class prevalence, failure counts, unique groups, and per-claim errors. There are no uncertainty intervals or calibrated/tuned thresholds in this milestone.
 
+## Matched offline baselines
+
+```bash
+npm run experiment:compare -- --run=experiment-results/fraud-choice-validation-01 --out=experiment-results/fraud-choice-validation-01/comparison.json
+```
+
+For vehicle fraud, this computes the existing categorical Naive Bayes algorithm and a constant training-prevalence predictor. Both use only the 9,224 training records for fitting. For the evidence-count task, it counts the two source fields directly. Inputs and targets are checked against the pinned dataset before comparison; the baseline cannot silently receive different records. Training split evaluation is rejected.
+
+The artifact records training IDs/model hashes, every baseline prediction, full-sample summaries, and paired summaries on successful model cases. Errors and unattempted cases stay visible; missing model outputs never become negative predictions. Baseline probability scores are evaluated for calibration, not presumed calibrated. No local-compute versus remote-network speed claim is made.
+
 ## Primitive references
 
 Checked 2026-10-24: [Choice](https://docs.typesafe.ai/primitives/choice), [Score](https://docs.typesafe.ai/primitives/score), [Noul](https://docs.typesafe.ai/primitives/noul), and [confidence semantics](https://docs.typesafe.ai/confidence). The experiment protocol tests model quality rather than assuming vendor calibration claims. The [independent Jev paper](https://arxiv.org/abs/2609.37647) supplies reproduction hypotheses; its results do not establish claims-domain performance.
