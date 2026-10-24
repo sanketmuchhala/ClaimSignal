@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "planId": "b003806e2bb401103885efb383fc9bfc6508f40e45027b31288d790f3eb78d4a",
+  "provenance": "live-provider",
+  "requestedModel": "typesafe/jev",
+  "codeRevision": "df4bf5d1fcf4515da76826f63486c10566cfb55e",
+  "workingTreeDirty": false,
+  "node": "v26.8.1",
+  "createdAt": "2026-10-24T19:37:24.490Z",
+  "execution": "sequential, one question per call; up to 5 retries after HTTP 429, which rejects before inference; no other retries",
+  "cost": null,
+  "costNote": "No rates supplied; usage is retained. Missing cost is not zero."
+}

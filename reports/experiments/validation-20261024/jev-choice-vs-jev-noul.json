@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "kind": "GROUPED BOOTSTRAP INTERVALS",
+  "planId": "b003806e2bb401103885efb383fc9bfc6508f40e45027b31288d790f3eb78d4a",
+  "task": "vehicle-fraud-choice-v1",
+  "dataset": {
+    "name": "Vehicle Insurance Claim Fraud Detection",
+    "sha256": "d7dab6086aa186fc82c607d50919067a1599cea45afb4965511fd7da9e935e09",
+    "split": "validation",
+    "available": 3186
+  },
+  "adapter": "jev",
+  "resolvedModel": "jev-1.13.0",
+  "method": {
+    "interval": "95% percentile bootstrap",
+    "resamples": 2000,
+    "seed": 20261024,
+    "unit": "Claim group: claims with identical allowed features resample together; synthetic fixtures are their own groups.",
+    "undefinedResamples": "Interval omitted when the statistic is undefined in more than 1% of resamples, for example a resample without a positive outcome.",
+    "pairing": "Differences are computed on the same resampled claims in each draw, restricted to claims both sides answered."
+  },
+  "counts": {
+    "planned": 1000,
+    "groups": 998,
+    "answered": 1000,
+    "answeredPositives": 68
+  },
+  "warnings": [],
+  "model": {
+    "answeredShare": {
+      "estimate": 1,
+      "low": 1,
+      "high": 1,
+      "undefinedResamples": 0
+    },
+    "brier": {
+      "estimate": 0.0848379,
+      "low": 0.0732765571997,
+      "high": 0.0968870606494,
+      "undefinedResamples": 0
+    },
+    "logLoss": {
+      "estimate": 0.31809435566,
+      "low": 0.285153826189,
+      "high": 0.351601995438,
+      "undefinedResamples": 0
+    },
+    "accuracy": {
+      "estimate": 0.921,
+      "low": 0.903997597598,
+      "high": 0.937205617616,
+      "undefinedResamples": 0
+    },
+    "rocAuc": {
+      "estimate": 0.422888790709,
+      "low": 0.352072726573,
+      "high": 0.493281130594,
+      "undefinedResamples": 0
+    },
+    "averagePrecision": {
+      "estimate": 0.0606225836704,
+      "low": 0.0452999391066,
+      "high": 0.0927525823033,
+      "undefinedResamples": 0
+    }
+  },
+  "baselines": {
+    "train-prior": {
+      "onModelAnswered": {
+        "brier": {
+          "estimate": 0.0634654361449,
+          "low": 0.0500654870421,
+          "high": 0.077666301364,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.249207981569,
+          "low": 0.207051430316,
+          "high": 0.293884233534,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": 0.932,
+          "low": 0.915915915916,
+          "high": 0.947176956106,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.5,
+          "low": 0.5,
+          "high": 0.5,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.068,
+          "low": 0.0528230438944,
+          "high": 0.0840840840841,
+          "undefinedResamples": 0
+        }
+      },
+      "modelMinusBaseline": {
+        "brier": {
+          "estimate": 0.0213724638551,
+          "low": 0.0168805327367,
+          "high": 0.0259995586543,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.0688863740912,
+          "low": 0.0509780371896,
+          "high": 0.0868129994935,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": -0.011,
+          "low": -0.0189620758483,
+          "high": -0.005,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": -0.0771112092906,
+          "low": -0.147927273427,
+          "high": -0.00671886940555,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": -0.00737741632956,
+          "low": -0.0162025993135,
+          "high": 0.0218501329252,
+          "undefinedResamples": 0
+        }
+      }
+    },
+    "naive-bayes": {
+      "onModelAnswered": {
+        "brier": {
+          "estimate": 0.0632956429924,
+          "low": 0.0531803302799,
+          "high": 0.0732554038816,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.244194756144,
+          "low": 0.203136152626,
+          "high": 0.28882462651,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": 0.928,
+          "low": 0.912825651303,
+          "high": 0.943300091136,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.761991921232,
+          "low": 0.700746064962,
+          "high": 0.817217161041,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.227900019832,
+          "low": 0.15459117373,
+          "high": 0.332847815054,
+          "undefinedResamples": 0
+        }
+      },
+      "modelMinusBaseline": {
+        "brier": {
+          "estimate": 0.0215422570076,
+          "low": 0.0147055281539,
+          "high": 0.0285138031102,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.0738995995163,
+          "low": 0.034424216613,
+          "high": 0.107876419606,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": -0.007,
+          "low": -0.0180578071566,
+          "high": 0.004004004004,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": -0.339103130523,
+          "low": -0.431773125272,
+          "high": -0.240025506396,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": -0.167277436161,
+          "low": -0.264734219615,
+          "high": -0.0895808905213,
+          "undefinedResamples": 0
+        }
+      }
+    }
+  },
+  "against": {
+    "left": {
+      "planId": "b003806e2bb401103885efb383fc9bfc6508f40e45027b31288d790f3eb78d4a",
+      "task": "vehicle-fraud-choice-v1",
+      "adapter": "jev",
+      "resolvedModel": "jev-1.13.0"
+    },
+    "right": {
+      "planId": "c3722ad116401797fce1312cadca1232b6edf769130fd0a7b389b0b208e50649",
+      "task": "vehicle-fraud-noul-v1",
+      "adapter": "jev",
+      "resolvedModel": "jev-1.13.0"
+    },
+    "samePlan": false,
+    "counts": {
+      "sharedPlanned": 1000,
+      "bothAnswered": 969,
+      "groupsBothAnswered": 967,
+      "positivesBothAnswered": 68
+    },
+    "answeredShare": {
+      "left": {
+        "estimate": 1,
+        "low": 1,
+        "high": 1,
+        "undefinedResamples": 0
+      },
+      "right": {
+        "estimate": 0.969,
+        "low": 0.958,
+        "high": 0.978978978979,
+        "undefinedResamples": 0
+      },
+      "leftMinusRight": {
+        "estimate": 0.031,
+        "low": 0.021021021021,
+        "high": 0.042,
+        "undefinedResamples": 0
+      }
+    },
+    "onBothAnswered": {
+      "left": {
+        "brier": {
+          "estimate": 0.0865634674923,
+          "low": 0.074680291887,
+          "high": 0.0990017333776,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.323040174378,
+          "low": 0.289379194457,
+          "high": 0.357826452537,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": 0.918472652219,
+          "low": 0.900721319057,
+          "high": 0.935454119732,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.420423385781,
+          "low": 0.348877285354,
+          "high": 0.491907313701,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.0622772071855,
+          "low": 0.0464983532145,
+          "high": 0.0947545238952,
+          "undefinedResamples": 0
+        }
+      },
+      "right": {
+        "brier": {
+          "estimate": 0.087246749226,
+          "low": 0.077564637816,
+          "high": 0.0974877691511,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.33305890728,
+          "low": 0.309417995151,
+          "high": 0.357092620765,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": 0.929824561404,
+          "low": 0.91322089704,
+          "high": 0.945754328727,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.394904354639,
+          "low": 0.332647232967,
+          "high": 0.458492202147,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.0559949371902,
+          "low": 0.0425655227607,
+          "high": 0.0730606196064,
+          "undefinedResamples": 0
+        }
+      },
+      "leftMinusRight": {
+        "brier": {
+          "estimate": -0.000683281733746,
+          "low": -0.00385053418054,
+          "high": 0.00271354149064,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": -0.0100187329018,
+          "low": -0.0222736039943,
+          "high": 0.00327859365082,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": -0.0113519091847,
+          "low": -0.0194085519554,
+          "high": -0.00515450646055,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.0255190311419,
+          "low": -0.0201174232985,
+          "high": 0.0700536654495,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.00628226999533,
+          "low": -0.00137170845392,
+          "high": 0.0305574597532,
+          "undefinedResamples": 0
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Intervals describe sampling variability across these claims, not run-to-run model variation: there is one call per claim.",
+    "No adjustment for multiple comparisons. Treat intervals that exclude zero as descriptive, not as significance tests.",
+    "Percentile intervals undercover with few groups or rare positives; counts are reported for that reason.",
+    "Metrics exclude failed and unattempted calls; answeredShare reports that coverage separately."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "planId": "c3722ad116401797fce1312cadca1232b6edf769130fd0a7b389b0b208e50649",
+  "planned": 1000,
+  "attempted": 1000,
+  "succeeded": 969,
+  "failed": 31,
+  "unattempted": 0,
+  "rateLimitRetries": 1,
+  "stopReason": null
+}
