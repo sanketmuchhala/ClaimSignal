@@ -5,5 +5,6 @@ node_modules/
 .env.*
 !.env.example
 benchmark-results/
+experiment-results/
 dist/
 .DS_Store
