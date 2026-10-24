@@ -187,6 +187,8 @@ tests/             Routing, adapter, HTTP and metric tests
 - [ ] Representative multi-line narratives and live Jev threshold calibration
 - [x] Measured latency, accuracy, and cost comparison (sample of the held-out split)
 - [ ] Live comparison on the remaining held-out claims
+- [ ] Comparison against a stronger LLM baseline (Llama 3.3 70B; commands in [benchmark methodology](docs/benchmarking.md#stronger-llm-baseline))
+- [ ] Paired comparison rerun with the per-reason review questions
 - [x] Durable review queue and idempotent submission (D1)
 - [ ] Reviewer UI
 

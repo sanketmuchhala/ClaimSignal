@@ -47,6 +47,21 @@ node --env-file=.env benchmarks/review-questions.ts --dataset=vehicle --limit=30
 node benchmarks/review-questions.ts --from=<checkpoint.jsonl[.gz]> --out=summary.json   # recompute without inference
 ```
 
+## Stronger LLM baseline
+
+The first comparison used `@cf/meta/llama-3.1-8b-instruct-fp8`, which scored every vehicle claim zero for fraud and reported full confidence throughout. To check that the result is not just a weak baseline, rerun with the same family at 70B. The model is both the baseline and the hybrid fallback. Pass its catalog prices on the command line, which override `.env`, so cost estimates are not computed at 8B rates. Workers AI listed $0.293 per million input tokens and $2.253 per million output tokens on 24 October 2026.
+
+```bash
+export LLM_MODEL=@cf/meta/llama-3.3-70b-instruct-fp8-fast LLM_INPUT_PER_MILLION=0.293 LLM_OUTPUT_PER_MILLION=2.253
+# Synthetic claims: about 110 LLM calls, within one day of the Workers Free allocation
+BENCHMARK_REPEATS=3 node --env-file=.env benchmarks/run.ts --dataset=synthetic
+# Held-out vehicle sample: about 250 claims fit in one day of the free allocation; the full split needs Workers Paid
+node --env-file=.env benchmarks/run.ts --dataset=vehicle --split=test --limit=250
+npm run benchmark:compare -- benchmark-results/<run>.jsonl --out=reports/live/<name>.json
+```
+
+A spent daily allocation stops the run with a `stopReason`; continue the next day with `--offset`.
+
 ## Paired model comparison
 
 Hybrid scores mix models: when Jev routes a claim to the fallback, the hybrid suggestion is the LLM's. Checkpoints therefore record each model's own decision (`decisions.jev`, `decisions.llm`) alongside the route reason. `benchmarks/compare.ts` reads a checkpoint and compares three views of the same claims:
