@@ -1,6 +1,7 @@
 import { fraudMetrics } from '../benchmarks/fraud-metrics.ts';
 import { hash, requestFor, verifyPlan } from './plan.ts';
-import { parseAnswer } from './jev.ts';
+import { decode } from './decode.ts';
+import type { Adapter } from './decode.ts';
 import { normalized, ordinalMetrics, probabilityMetrics, reliability, selectiveCurve } from './metrics.ts';
 import type { Observation, Plan } from './types.ts';
 import type { ProbabilityObservation, SelectiveObservation } from './metrics.ts';
@@ -8,9 +9,12 @@ import type { ProbabilityObservation, SelectiveObservation } from './metrics.ts'
 export interface RunMetadata {
   schemaVersion: 1; planId: string; provenance: 'live-provider' | 'test-double';
   requestedModel: string; codeRevision: string; workingTreeDirty: boolean;
+  adapter?: Adapter;
 }
 export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
   verifyPlan(plan);
+  const isLlm = run.adapter === 'llm-structured-v1';
+  if (run.adapter !== undefined && !['jev', 'llm-structured-v1'].includes(run.adapter)) throw new Error('Unknown experiment adapter');
   if (run.schemaVersion !== 1 || run.planId !== plan.id || !['live-provider', 'test-double'].includes(run.provenance) || typeof run.requestedModel !== 'string' || !run.requestedModel || typeof run.codeRevision !== 'string' || typeof run.workingTreeDirty !== 'boolean') throw new Error('Run metadata mismatch');
   const examples = new Map(plan.examples.map(e => [e.id, e]));
   const seen = new Set<string>();
@@ -32,7 +36,7 @@ export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
       continue;
     }
     // Re-parse the source response rather than trusting a cached, potentially edited prediction.
-    const parsed = parseAnswer(row.raw, plan.task.question);
+    const parsed = decode(row.raw, plan.task.question, run.requestedModel, run.adapter ?? 'jev', requestFor(plan.task, example));
     if (hash(parsed.answer) !== hash(row.answer) || parsed.resolvedModel !== row.resolvedModel || hash(parsed.usage) !== hash(row.usage)) throw new Error('Stored answer differs from raw response');
     models.add(parsed.resolvedModel); successes++;
     const a = parsed.answer, target = example.target;
@@ -41,7 +45,7 @@ export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
       if (target.kind !== 'ordinal') throw new Error('Score requires ordinal ground truth');
       ordinal.push({ score: a.score, probabilities: a.probabilities, target: target.value });
       vendor.push({ confidence: a.confidence, loss: Math.abs(a.score - target.value) });
-      cases.push({ exampleId: example.id, target, score: a.score, absoluteError: Math.abs(a.score - target.value), vendorConfidence: a.confidence });
+      cases.push({ exampleId: example.id, target, score: a.score, absoluteError: Math.abs(a.score - target.value), ...(isLlm ? { selfReportedConfidence: a.confidence } : { vendorConfidence: a.confidence }) });
     } else {
       let probability: number, outcome: 0 | 1, predicted: string | number;
       if (a.type === 'noul' || target.kind === 'binary') {
@@ -65,7 +69,7 @@ export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
       top.push({ probability, outcome });
       selective.push({ confidence: probability, loss: 1 - outcome, ...(target.kind === 'binary' ? { positive: target.value === 1 } : {}) });
       if (a.type === 'choice') vendor.push({ ...selective.at(-1)!, confidence: a.confidence });
-      cases.push({ exampleId: example.id, target, predicted, correct: !!outcome, predictedClassProbability: probability, ...(a.type === 'choice' ? { vendorConfidence: a.confidence, rawChoice: a.choice } : {}) });
+      cases.push({ exampleId: example.id, target, predicted, correct: !!outcome, predictedClassProbability: probability, ...(a.type === 'choice' ? { ...(isLlm ? { selfReportedConfidence: a.confidence } : { vendorConfidence: a.confidence }), rawChoice: a.choice } : {}) });
     }
   }
   if (models.size > 1) throw new Error('Resolved model changed within run; split runs before analysis');
@@ -79,6 +83,8 @@ export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
   const plannedTargetCounts = targetCounts(plan.examples.map(e => e.id));
   const evaluatedTargetCounts = targetCounts(rows.filter(r => r.status === 'ok').map(r => r.exampleId));
   const sampleWarnings: string[] = [];
+  if (isLlm) sampleWarnings.push('LLM probabilities and confidence are generated estimates, not next-token probabilities or Jev confidence statistics.');
+  if ([...models].some(m => m.startsWith('unreported:'))) sampleWarnings.push('Provider did not report a resolved model version; only the requested alias is known.');
   if (plan.examples[0].target.kind === 'binary' && (!evaluatedTargetCounts['0'] || !evaluatedTargetCounts['1'])) sampleWarnings.push('Evaluated sample lacks a binary class: ROC-AUC is undefined and accuracy cannot establish discrimination.');
   if (plan.task.question.type === 'score') {
     const missing = plan.task.question.criteria.map((_, i) => String(i)).filter(k => !evaluatedTargetCounts[k]);
@@ -100,7 +106,7 @@ export function analyze(plan: Plan, rows: Observation[], run: RunMetadata) {
     categoricalDistribution: !isScore && !event.length && successes ? { brierSumOverClasses: multiclassBrier / successes, logLoss: multiclassLogLoss / successes } : null,
     topLabelCalibration: isScore ? null : reliability(top),
     ordinal: isScore ? ordinalMetrics(ordinal) : null,
-    selective: { loss: isScore ? 'absolute rubric error' : 'classification error', byPredictedClassProbability: isScore ? null : selectiveCurve(selective, planned), byVendorConfidence: plan.task.question.type === 'noul' ? null : selectiveCurve(vendor, planned) },
+    selective: { loss: isScore ? 'absolute rubric error' : 'classification error', byPredictedClassProbability: isScore ? null : selectiveCurve(selective, planned), byVendorConfidence: isLlm || plan.task.question.type === 'noul' ? null : selectiveCurve(vendor, planned) },
     operations: { latencyIncludesFailedAttempts: true, p50Ms: q(0.5), p95Ms: q(0.95), callsWithKnownUsage: knownUsage.length, inputTokensKnown: knownUsage.reduce((s, u) => s + u.inputTokens, 0), outputTokensKnown: knownUsage.reduce((s, u) => s + u.outputTokens, 0), costUsd: null },
     errors, cases,
   };

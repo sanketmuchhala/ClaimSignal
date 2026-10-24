@@ -2,7 +2,8 @@ import { mkdir, open, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { AI } from '../src/domain.ts';
 import { hash, requestFor, verifyPlan } from './plan.ts';
-import { parseAnswer } from './jev.ts';
+import { decode } from './decode.ts';
+import type { Adapter } from './decode.ts';
 import type { Observation, Plan } from './types.ts';
 
 export interface RunOptions {
@@ -11,6 +12,7 @@ export interface RunOptions {
   codeRevision: string;
   workingTreeDirty: boolean;
   provenance: 'live-provider' | 'test-double';
+  adapter?: Adapter;
 }
 
 export async function runPlan(plan: Plan, ai: AI, options: RunOptions) {
@@ -22,6 +24,7 @@ export async function runPlan(plan: Plan, ai: AI, options: RunOptions) {
   await writeFile(join(options.directory, 'plan.json'), JSON.stringify(plan, null, 2) + '\n', { flag: 'wx' });
   await writeFile(join(options.directory, 'run.json'), JSON.stringify({
     schemaVersion: 1, planId: plan.id, provenance: options.provenance, requestedModel: options.model,
+    ...(options.adapter ? { adapter: options.adapter } : {}),
     codeRevision: options.codeRevision, workingTreeDirty: options.workingTreeDirty, node: process.version,
     createdAt: new Date().toISOString(), execution: 'sequential, one question per call, no retries',
     cost: null, costNote: 'No rates supplied; usage is retained. Missing cost is not zero.',
@@ -42,7 +45,7 @@ export async function runPlan(plan: Plan, ai: AI, options: RunOptions) {
         row.latencyMs = performance.now() - start;
         row.status = 'invalid-response';
         try {
-          Object.assign(row, parseAnswer(row.raw, plan.task.question));
+          Object.assign(row, decode(row.raw, plan.task.question, options.model, options.adapter ?? 'jev', request));
           row.status = 'ok'; succeeded++;
         } catch (error) { row.error = error instanceof Error ? error.message : 'Invalid response'; }
       } catch (error) {

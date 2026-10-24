@@ -90,6 +90,14 @@ npm run experiment:robustness -- --base=experiment-results/base --variant=experi
 
 The offline comparison verifies the exact declared transformation and same model, then reports paired decision flips, total variation in probability distributions, or absolute changes in rubric score. Unpaired failures remain visible. One response per form does not separate stochastic variation from prompt sensitivity; no statistical significance is claimed. Model outputs and labels are compared in their separate reports. Baselines for transformed inputs are not silently reused; compare those to their unmodified base run explicitly.
 
+## LLM comparison
+
+Use the same task/split/limit, `--provider=llm`, an explicit `--model=<Workers-AI-model>`, and a new output directory with `--execute`. The existing Cloudflare transport is reused. Requests contain exactly the task question and claim state; the raw messages and provider responses are preserved. Generated JSON is validated against the same primitive contract. Malformed JSON remains an invalid response rather than becoming a negative prediction.
+
+`npm run experiment:paired -- --left=<jev-run> --right=<llm-run> --out=<new.json>` verifies identical plans and reports each full run plus metrics on their shared successful cases. `experiment:compare` also works on the LLM run to produce matched deterministic/ML baselines. These are generated probability estimates, not exact next-token probabilities; LLM self-reported confidence is excluded from the Jev-confidence curve. Missing resolved LLM versions are recorded as `unreported:<requested-alias>` and make controlled same-version robustness comparison unavailable.
+
+No new LLM performance is claimed until an explicit live run is captured. Provider choice and model are never silently substituted.
+
 ## Primitive references
 
 Checked 2026-10-24: [Choice](https://docs.typesafe.ai/primitives/choice), [Score](https://docs.typesafe.ai/primitives/score), [Noul](https://docs.typesafe.ai/primitives/noul), and [confidence semantics](https://docs.typesafe.ai/confidence). The experiment protocol tests model quality rather than assuming vendor calibration claims. The [independent Jev paper](https://arxiv.org/abs/2609.37647) supplies reproduction hypotheses; its results do not establish claims-domain performance.

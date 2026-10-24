@@ -17,7 +17,7 @@ function decision(answer: Answer, plan: Plan): string | number {
 export function robustness(base: Awaited<ReturnType<typeof loadRun>>, variant: Awaited<ReturnType<typeof loadRun>>) {
   const a = analyze(base.plan, base.rows, base.run), b = analyze(variant.plan, variant.rows, variant.run);
   if (!variant.plan.variant || variantOf(base.plan, variant.plan.variant.id).id !== variant.plan.id) throw new Error('Variant is not the declared transformation of this base plan');
-  if (base.run.provenance !== variant.run.provenance || base.run.requestedModel !== variant.run.requestedModel || a.resolvedModel !== b.resolvedModel) throw new Error('Robustness comparison requires the same provider and model');
+  if (base.run.provenance !== variant.run.provenance || base.run.adapter !== variant.run.adapter || base.run.requestedModel !== variant.run.requestedModel || a.resolvedModel !== b.resolvedModel || a.resolvedModel?.startsWith('unreported:')) throw new Error('Robustness comparison requires the same provider and reported model version');
   const right = new Map(variant.rows.filter(r => r.status === 'ok').map(r => [r.exampleId, r]));
   const pairs = base.rows.filter(r => r.status === 'ok' && right.has(r.exampleId)).map(row => {
     const other = right.get(row.exampleId)!;
