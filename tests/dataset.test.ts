@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { parseCsv, loadVehicle, adaptVehicle, featureNames } from '../benchmarks/datasets/vehicle.ts';
 import { fraudMetrics } from '../benchmarks/fraud-metrics.ts';
-import { trainNaiveBayes } from '../benchmarks/naive-bayes.ts';
+import { fitNaiveBayes, trainNaiveBayes } from '../benchmarks/naive-bayes.ts';
 import { parseClaim } from '../src/domain.ts';
 import { summarize } from '../benchmarks/metrics.ts';
 
@@ -62,8 +62,17 @@ test('the Worker model file reproduces the offline Naive Bayes scores exactly', 
   const { tabularFraudScore } = await import('../src/tabular.ts');
   const examples = await loadVehicle();
   const predict = trainNaiveBayes(examples.filter(e => e.split === 'train'));
-  for (const example of examples.filter(e => e.split === 'test').slice(0, 300)) assert.equal(tabularFraudScore(vehicleFraudModel, example.features).score, predict(example.features));
+  for (const example of examples.filter(e => e.split === 'test').slice(0, 300)) assert.ok(Math.abs(tabularFraudScore(vehicleFraudModel, example.features).score - predict(example.features)) < 1e-9);
   assert.deepEqual(vehicleFraudModel.features, featureNames);
+  // Every committed parameter matches a fresh fit on this platform to well within the stored precision.
+  const fresh = fitNaiveBayes(examples.filter(e => e.split === 'train'));
+  const close = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b));
+  assert.ok(vehicleFraudModel.logPrior.every((v, i) => close(v, fresh.logPrior[i])));
+  for (const name of featureNames) {
+    assert.deepEqual(Object.keys(vehicleFraudModel.logLikelihood[name]), Object.keys(fresh.logLikelihood[name]));
+    for (const [value, pair] of Object.entries(fresh.logLikelihood[name])) assert.ok(pair.every((v, i) => close(vehicleFraudModel.logLikelihood[name][value][i], v)), `${name}=${value}`);
+    assert.ok(fresh.logUnseen[name].every((v, i) => close(vehicleFraudModel.logUnseen[name][i], v)));
+  }
   const baseline = JSON.parse(await (await import('node:fs/promises')).readFile(new URL('../reports/vehicle-baseline.json', import.meta.url), 'utf8'));
   assert.equal(vehicleFraudModel.threshold, baseline.validation.threshold);
 });
