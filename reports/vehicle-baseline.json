@@ -111,7 +111,7 @@
     "rocAuc": 0.5,
     "averagePrecision": 0.061461794019933555
   },
-  "liveJevEvaluation": "not run — Cloudflare credentials required",
+  "liveJevEvaluation": "measured separately; see reports/live-comparison.md",
   "limitations": [
     "Historical auto-only tabular benchmark; does not validate multi-line classification",
     "Descriptions are deterministic field renderings, not original narratives",

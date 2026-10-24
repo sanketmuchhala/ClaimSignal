@@ -31,7 +31,7 @@ const report = {
   validation: best,
   test: fraudMetrics(test, best.threshold),
   majorityBaseline: fraudMetrics(test.map(s => ({ ...s, score: 0 })), 0.5),
-  liveJevEvaluation: 'not run — Cloudflare credentials required',
+  liveJevEvaluation: 'measured separately; see reports/live-comparison.md',
   limitations: ['Historical auto-only tabular benchmark; does not validate multi-line classification', 'Descriptions are deterministic field renderings, not original narratives', 'Fraud labels do not provide gold review routes or rubric severity scores', 'Random grouped split is not a temporal or external validation', 'Posterior scores are not calibrated probabilities'],
 };
 await mkdir('reports', { recursive: true });

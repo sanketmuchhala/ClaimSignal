@@ -16,3 +16,7 @@ Reproduce with `npm ci && npm run dataset:evaluate`. The complete dataset is par
 At the validation-selected threshold, the baseline detects 46 of 185 fraudulent test records, misses 139, and flags 255 non-fraud records. These results provide a reproducible starting point and show why accuracy is misleading on this dataset. They do not justify automated fraud decisions.
 
 See [`vehicle-baseline.json`](vehicle-baseline.json) for complete confusion matrices, dataset hashes, feature allowlist, split counts, and limitations. CI reproduces this file and checks that the results have not drifted.
+
+## Live comparison
+
+Measured Jev, LLM-only and hybrid results from Cloudflare Workers AI, including this baseline scored on the same claims, are in [`live-comparison.md`](live-comparison.md). Their checkpoints and comparison files are in [`live/`](live/).

@@ -6,7 +6,7 @@
 
 ClaimSignal is a TypeScript insurance claims triage service for Cloudflare Workers AI. It uses TypeSafe AI's Jev, a non-autoregressive System One model, to classify claim type, score fraud indicators, and make typed, probabilistic decisions instead of parsing free-text LLM output.
 
-The first implementation includes a Jev adapter, confidence-based routing, an LLM fallback, an authenticated HTTP API, and a reproducible benchmark harness. **Live Cloudflare validation and real performance measurements are still pending.**
+The first implementation includes a Jev adapter, confidence-based routing, an LLM fallback, an authenticated HTTP API, and a reproducible benchmark harness. Live Cloudflare runs are measured in the [live comparison report](reports/live-comparison.md).
 
 ## How it works
 
@@ -48,7 +48,24 @@ The dataset is also wired into the Jev-versus-LLM runner:
 node --env-file=.env benchmarks/run.ts --dataset=vehicle --split=test --limit=20
 ```
 
-Remove `--limit=20` to evaluate the complete test partition. Use `--split=all` for the full corpus. Live evaluation requires Cloudflare credentials and has not yet been run. Dataset labels never enter model inputs. This auto-only dataset cannot validate health, travel, or property classification, and its field-rendered descriptions are not original claimant narratives.
+Remove `--limit=20` to evaluate the complete test partition. Use `--split=all` for the full corpus. Live evaluation requires Cloudflare credentials. Dataset labels never enter model inputs. This auto-only dataset cannot validate health, travel, or property classification, and its field-rendered descriptions are not original claimant narratives.
+
+## Measured live comparison
+
+Jev and `@cf/meta/llama-3.1-8b-instruct-fp8` were run on Workers AI against the same claims: a 1,347-claim sample of the held-out vehicle split and 12 synthetic claims run five times each. Brackets are paired bootstrap 95% intervals. [Full report and reproduction](reports/live-comparison.md).
+
+| | Jev / hybrid | LLM only |
+| --- | ---: | ---: |
+| Median latency, vehicle | 163 ms | 2,547 ms |
+| Estimated cost per 1,000 vehicle claims | $0.033 | $0.091 |
+| Failed calls, vehicle | 0 of 1,347 | 3 of 1,349 |
+| Claim type correct, synthetic | 100% | 91.7% |
+| Fraud ROC-AUC, vehicle | 0.507 [0.446, 0.567] | 0.500 (constant score) |
+
+- Jev is about 16 times faster and 2.7 times cheaper as the primary call, and it classified every synthetic claim correctly.
+- Neither language model ranks historical fraud on field-rendered claims. A Naive Bayes model scored on the same claims reaches 0.691 [0.644, 0.737].
+- At the current thresholds Jev auto-resolves nothing; it sends 99.85% of vehicle claims straight to review. The LLM reports full confidence, so the same thresholds would auto-resolve every vehicle claim, fraud-labelled ones included.
+- The vehicle run stopped at the Workers Free plan's daily allocation. The remaining 1,663 test claims can be resumed with `--offset=1347`.
 
 ## Routing policy
 
@@ -107,7 +124,7 @@ cp .env.example .env
 BENCHMARK_REPEATS=3 node --env-file=.env benchmarks/run.ts
 ```
 
-Reports are written to the ignored `benchmark-results/` directory. Missing prices, missing usage, and failed calls produce `null` cost rather than a misleading zero. The harness makes no retries and retains failures in the accuracy denominator. The default run uses 12 hand-authored smoke fixtures; use `--dataset=vehicle` for the full public dataset. See [benchmark methodology](docs/benchmarking.md).
+Reports are written to the ignored `benchmark-results/` directory. Missing prices, missing usage, and failed calls produce `null` cost rather than a misleading zero. The harness does not retry model failures and retains them in the accuracy denominator. Calls rejected by Cloudflare's account rate limiter (HTTP 429) are not model failures: the pair is set aside in a `.throttled.jsonl` checkpoint and repeated after a pause, and a spent daily allocation stops the run with a `stopReason`. Resume with `--offset=N`, then compare merged checkpoints with `npm run benchmark:compare -- first.jsonl resumed.jsonl`. The default run uses 12 hand-authored smoke fixtures; use `--dataset=vehicle` for the full public dataset. See [benchmark methodology](docs/benchmarking.md).
 
 ## Deploy
 
@@ -128,7 +145,7 @@ src/triage.ts       Confidence policy, escalation and deadlines
 src/worker.ts       Authenticated HTTP endpoint
 benchmarks/         Dataset adapters, paired runner, baseline and metrics
 data/               Full public CSV and provenance
-reports/            Reproducible offline evaluation results
+reports/            Offline baseline and live comparison results
 tests/             Routing, adapter, HTTP and metric tests
 ```
 
@@ -138,10 +155,11 @@ tests/             Routing, adapter, HTTP and metric tests
 - [x] Confidence routing and LLM-assisted human review
 - [x] Worker API, input limits, authentication, and failure handling
 - [x] Benchmark harness and automated tests
-- [ ] Live Cloudflare integration smoke test
+- [x] Live Cloudflare integration smoke test
 - [x] Full public auto-claims dataset, grouped partitions, and measured offline baseline
 - [ ] Representative multi-line narratives and live Jev threshold calibration
-- [ ] Measured latency, accuracy, and cost comparison
+- [x] Measured latency, accuracy, and cost comparison (sample of the held-out split)
+- [ ] Live comparison on the remaining held-out claims
 - [ ] Durable review queue, idempotent submission, and reviewer workflow
 
 ## References

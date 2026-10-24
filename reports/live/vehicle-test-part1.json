@@ -1,0 +1,52 @@
+{
+  "kind": "live vehicle evaluation",
+  "timestamp": "2026-10-24T05:48:48.915Z",
+  "dataset": {
+    "name": "Vehicle Insurance Claim Fraud Detection",
+    "kaggle": "https://www.kaggle.com/datasets/shivamb/vehicle-claim-fraud-detection",
+    "mirror": "https://github.com/idris10x/vehicle-insurance-fraud-detection",
+    "mirrorCommit": "ee0193ce0a0f2da098dcd35256381ba31baf06c7",
+    "sourceGitBlob": "8513e8b1deb460c5ba35689caf4220dcc013a2d3",
+    "localSha256": "d7dab6086aa186fc82c607d50919067a1599cea45afb4965511fd7da9e935e09",
+    "rows": 15420,
+    "license": "CC0-1.0 (reported in the cited dataset research paper)",
+    "splitSeed": "claimsignal-vehicle-v1"
+  },
+  "split": "test",
+  "offset": 0,
+  "availableCases": 3010,
+  "selectedCases": 3010,
+  "repeats": 1,
+  "stoppedEarly": true,
+  "stopReason": "Workers AI account limits (HTTP 429: throttling, then the Workers Free daily allocation of 10,000 neurons)",
+  "throttledCalls": null,
+  "plannedPredictions": 6020,
+  "completedPredictions": 2694,
+  "models": {
+    "jev": "typesafe/jev",
+    "llm": "@cf/meta/llama-3.1-8b-instruct-fp8"
+  },
+  "rates": {
+    "jev": {
+      "input": 0.042,
+      "output": 0
+    },
+    "llm": {
+      "input": 0.152,
+      "output": 0.287
+    }
+  },
+  "policy": {
+    "confidence": 0.85,
+    "maxAutoRisk": 0.25,
+    "specialistRisk": 0.7,
+    "maxAutoReviewProbability": 0.1,
+    "specialistReviewProbability": 0.8
+  },
+  "truncation": {
+    "keptCheckpointRows": 2694,
+    "keptClaims": 1347,
+    "originalCheckpointRows": 2914,
+    "reason": "From claim 1,347 onward every failure was a fast HTTP 429 account-limit rejection (25–100 ms, before inference), confirmed by direct probes. Rows from that claim on were dropped so account limits are not counted as model errors. Earlier errors (two 8 s timeouts, one invalid LLM response) are genuine and kept."
+  }
+}

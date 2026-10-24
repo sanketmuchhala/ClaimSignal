@@ -1,0 +1,334 @@
+{
+  "kind": "PAIRED LIVE COMPARISON — Jev, LLM-only and hybrid on identical claims",
+  "runs": [
+    {
+      "source": "reports/live/vehicle-test-part1.jsonl.gz",
+      "kind": "live vehicle evaluation",
+      "timestamp": "2026-10-24T05:48:48.915Z",
+      "dataset": {
+        "name": "Vehicle Insurance Claim Fraud Detection",
+        "kaggle": "https://www.kaggle.com/datasets/shivamb/vehicle-claim-fraud-detection",
+        "mirror": "https://github.com/idris10x/vehicle-insurance-fraud-detection",
+        "mirrorCommit": "ee0193ce0a0f2da098dcd35256381ba31baf06c7",
+        "sourceGitBlob": "8513e8b1deb460c5ba35689caf4220dcc013a2d3",
+        "localSha256": "d7dab6086aa186fc82c607d50919067a1599cea45afb4965511fd7da9e935e09",
+        "rows": 15420,
+        "license": "CC0-1.0 (reported in the cited dataset research paper)",
+        "splitSeed": "claimsignal-vehicle-v1"
+      },
+      "split": "test",
+      "offset": 0,
+      "selectedCases": 3010,
+      "repeats": 1,
+      "stoppedEarly": true,
+      "stopReason": "Workers AI account limits (HTTP 429: throttling, then the Workers Free daily allocation of 10,000 neurons)",
+      "throttledCalls": null,
+      "truncation": {
+        "keptCheckpointRows": 2694,
+        "keptClaims": 1347,
+        "originalCheckpointRows": 2914,
+        "reason": "From claim 1,347 onward every failure was a fast HTTP 429 account-limit rejection (25–100 ms, before inference), confirmed by direct probes. Rows from that claim on were dropped so account limits are not counted as model errors. Earlier errors (two 8 s timeouts, one invalid LLM response) are genuine and kept."
+      },
+      "plannedPredictions": 6020,
+      "completedPredictions": 2694,
+      "models": {
+        "jev": "typesafe/jev",
+        "llm": "@cf/meta/llama-3.1-8b-instruct-fp8"
+      },
+      "rates": {
+        "jev": {
+          "input": 0.042,
+          "output": 0
+        },
+        "llm": {
+          "input": 0.152,
+          "output": 0.287
+        }
+      },
+      "policy": {
+        "confidence": 0.85,
+        "maxAutoRisk": 0.25,
+        "specialistRisk": 0.7,
+        "maxAutoReviewProbability": 0.1,
+        "specialistReviewProbability": 0.8
+      }
+    }
+  ],
+  "pairs": 1347,
+  "unpairedRows": 0,
+  "operations": {
+    "hybrid": {
+      "pipelineRuns": 1347,
+      "latencyMs": {
+        "count": 1347,
+        "mean": 202,
+        "p50": 162.7,
+        "p95": 367,
+        "p99": 571.1,
+        "max": 2673.8
+      },
+      "modelCallsPerClaim": 1.001,
+      "runsWithAnyError": 0,
+      "estimatedCostUsd": {
+        "known": 0.045032,
+        "knownRuns": 1347,
+        "unknownRuns": 0,
+        "per1000ClaimsFromKnown": 0.0334
+      },
+      "autoResolved": 0
+    },
+    "llm_only": {
+      "pipelineRuns": 1347,
+      "latencyMs": {
+        "count": 1347,
+        "mean": 2678.4,
+        "p50": 2546.8,
+        "p95": 3485.8,
+        "p99": 5236.5,
+        "max": 8013.5
+      },
+      "modelCallsPerClaim": 1,
+      "runsWithAnyError": 3,
+      "estimatedCostUsd": {
+        "known": 0.122834,
+        "knownRuns": 1344,
+        "unknownRuns": 3,
+        "per1000ClaimsFromKnown": 0.0914
+      },
+      "autoResolved": 0
+    }
+  },
+  "providers": {
+    "jev": {
+      "calls": 1347,
+      "errors": 0,
+      "errorRate": 0,
+      "models": {
+        "jev-1.13.0": 1347
+      },
+      "okLatencyMs": {
+        "count": 1347,
+        "mean": 198.4,
+        "p50": 162.7,
+        "p95": 365.7,
+        "p99": 565.3,
+        "max": 1944.9
+      },
+      "meanInputTokens": 792.8,
+      "meanOutputTokens": 87
+    },
+    "llm": {
+      "calls": 1349,
+      "errors": 3,
+      "errorRate": 0.0022,
+      "models": {
+        "@cf/meta/llama-3.1-8b-instruct-fp8": 1346
+      },
+      "okLatencyMs": {
+        "count": 1346,
+        "mean": 2669.7,
+        "p50": 2545.7,
+        "p95": 3420.8,
+        "p99": 5158.1,
+        "max": 7042.9
+      },
+      "meanInputTokens": 512.5,
+      "meanOutputTokens": 47
+    }
+  },
+  "gate": {
+    "jev": {
+      "auto": {
+        "count": 0,
+        "share": 0
+      },
+      "fallback": {
+        "count": 2,
+        "share": 0.0015,
+        "fraud": 0,
+        "fraudRate": 0
+      },
+      "human": {
+        "count": 1345,
+        "share": 0.9985,
+        "fraud": 91,
+        "fraudRate": 0.0677
+      }
+    },
+    "llm": {
+      "auto": {
+        "count": 1344,
+        "share": 1,
+        "fraud": 90,
+        "fraudRate": 0.067
+      },
+      "fallback": {
+        "count": 0,
+        "share": 0
+      },
+      "human": {
+        "count": 0,
+        "share": 0
+      }
+    }
+  },
+  "fraud": {
+    "pairedClaims": 1347,
+    "scoredByAllPipelines": 1344,
+    "excludedForMissingScores": 3,
+    "positives": 90,
+    "bootstrap": {
+      "method": "paired percentile, claims resampled with replacement",
+      "resamples": 2000,
+      "seed": 20261024
+    },
+    "pipelines": {
+      "jev": {
+        "rocAuc": 0.5073,
+        "rocAuc95": {
+          "low": 0.4461,
+          "high": 0.5671
+        },
+        "averagePrecision": 0.0684,
+        "averagePrecision95": {
+          "low": 0.0537,
+          "high": 0.0965
+        },
+        "atDeclaredCutoff": {
+          "threshold": 0.5,
+          "flagged": 1,
+          "tp": 0,
+          "fp": 1,
+          "fn": 90,
+          "precision": 0,
+          "recall": 0,
+          "f1": 0
+        },
+        "distinctScores": 167,
+        "shareScoredZero": 0,
+        "meanScoreFraud": 0.2397,
+        "meanScoreNonFraud": 0.238
+      },
+      "llm": {
+        "rocAuc": 0.5,
+        "rocAuc95": {
+          "low": 0.5,
+          "high": 0.5
+        },
+        "averagePrecision": 0.067,
+        "averagePrecision95": {
+          "low": 0.0543,
+          "high": 0.0804
+        },
+        "atDeclaredCutoff": {
+          "threshold": 0.5,
+          "flagged": 0,
+          "tp": 0,
+          "fp": 0,
+          "fn": 90,
+          "precision": 0,
+          "recall": 0,
+          "f1": 0
+        },
+        "distinctScores": 1,
+        "shareScoredZero": 1,
+        "meanScoreFraud": 0,
+        "meanScoreNonFraud": 0
+      },
+      "hybrid": {
+        "rocAuc": 0.5074,
+        "rocAuc95": {
+          "low": 0.4462,
+          "high": 0.5671
+        },
+        "averagePrecision": 0.0684,
+        "averagePrecision95": {
+          "low": 0.0537,
+          "high": 0.0965
+        },
+        "atDeclaredCutoff": {
+          "threshold": 0.5,
+          "flagged": 1,
+          "tp": 0,
+          "fp": 1,
+          "fn": 90,
+          "precision": 0,
+          "recall": 0,
+          "f1": 0
+        },
+        "distinctScores": 168,
+        "shareScoredZero": 0.0015,
+        "meanScoreFraud": 0.2397,
+        "meanScoreNonFraud": 0.2379
+      }
+    },
+    "differences": {
+      "jev-llm": {
+        "rocAuc": 0.0073,
+        "rocAuc95": {
+          "low": -0.0539,
+          "high": 0.0671
+        },
+        "averagePrecision": 0.0014,
+        "averagePrecision95": {
+          "low": -0.0075,
+          "high": 0.0266
+        }
+      },
+      "hybrid-llm": {
+        "rocAuc": 0.0074,
+        "rocAuc95": {
+          "low": -0.0538,
+          "high": 0.0671
+        },
+        "averagePrecision": 0.0014,
+        "averagePrecision95": {
+          "low": -0.0075,
+          "high": 0.0266
+        }
+      }
+    },
+    "spearmanJevLlm": null,
+    "offlineBaselineSameClaims": {
+      "model": "Categorical Naive Bayes, 20 allowed tabular fields, fit on the training split",
+      "claims": 1344,
+      "rocAuc": 0.6906,
+      "rocAuc95": {
+        "low": 0.644,
+        "high": 0.737
+      },
+      "averagePrecision": 0.1234,
+      "averagePrecision95": {
+        "low": 0.0925,
+        "high": 0.174
+      },
+      "minusJevRocAuc": 0.1832,
+      "minusJevRocAuc95": {
+        "low": 0.1038,
+        "high": 0.2667
+      },
+      "minusLlmRocAuc": 0.1906,
+      "minusLlmRocAuc95": {
+        "low": 0.144,
+        "high": 0.237
+      }
+    },
+    "exploratoryReviewSignal": {
+      "jev": {
+        "rocAuc": 0.5184,
+        "rocAuc95": {
+          "low": 0.4542,
+          "high": 0.5801
+        }
+      },
+      "llm": {
+        "rocAuc": 0.5,
+        "rocAuc95": {
+          "low": 0.5,
+          "high": 0.5
+        }
+      }
+    }
+  },
+  "classification": null
+}

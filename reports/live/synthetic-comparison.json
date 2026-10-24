@@ -1,0 +1,381 @@
+{
+  "kind": "PAIRED LIVE COMPARISON — Jev, LLM-only and hybrid on identical claims",
+  "runs": [
+    {
+      "source": "reports/live/synthetic.jsonl.gz",
+      "kind": "live synthetic evaluation",
+      "timestamp": "2026-10-24T04:43:40.529Z",
+      "dataset": "synthetic fixtures",
+      "split": null,
+      "offset": 0,
+      "selectedCases": 12,
+      "repeats": 5,
+      "stoppedEarly": false,
+      "stopReason": null,
+      "throttledCalls": null,
+      "truncation": null,
+      "plannedPredictions": 120,
+      "completedPredictions": 120,
+      "models": {
+        "jev": "typesafe/jev",
+        "llm": "@cf/meta/llama-3.1-8b-instruct-fp8"
+      },
+      "rates": {
+        "jev": {
+          "input": 0.042,
+          "output": 0
+        },
+        "llm": {
+          "input": 0.152,
+          "output": 0.287
+        }
+      },
+      "policy": {
+        "confidence": 0.85,
+        "maxAutoRisk": 0.25,
+        "specialistRisk": 0.7,
+        "maxAutoReviewProbability": 0.1,
+        "specialistReviewProbability": 0.8
+      }
+    }
+  ],
+  "pairs": 60,
+  "unpairedRows": 0,
+  "operations": {
+    "hybrid": {
+      "pipelineRuns": 60,
+      "latencyMs": {
+        "count": 60,
+        "mean": 1522.2,
+        "p50": 1486.3,
+        "p95": 3267.9,
+        "p99": 3490.7,
+        "max": 3581.5
+      },
+      "modelCallsPerClaim": 1.5,
+      "runsWithAnyError": 0,
+      "estimatedCostUsd": {
+        "known": 0.003478,
+        "knownRuns": 60,
+        "unknownRuns": 0,
+        "per1000ClaimsFromKnown": 0.058
+      },
+      "autoResolved": 0
+    },
+    "llm_only": {
+      "pipelineRuns": 60,
+      "latencyMs": {
+        "count": 60,
+        "mean": 2768.2,
+        "p50": 2646.5,
+        "p95": 3604,
+        "p99": 4410.1,
+        "max": 4492.3
+      },
+      "modelCallsPerClaim": 1,
+      "runsWithAnyError": 0,
+      "estimatedCostUsd": {
+        "known": 0.003995,
+        "knownRuns": 60,
+        "unknownRuns": 0,
+        "per1000ClaimsFromKnown": 0.0666
+      },
+      "autoResolved": 0
+    }
+  },
+  "providers": {
+    "jev": {
+      "calls": 60,
+      "errors": 0,
+      "errorRate": 0,
+      "models": {
+        "jev-1.13.0": 60
+      },
+      "okLatencyMs": {
+        "count": 60,
+        "mean": 223.2,
+        "p50": 177.4,
+        "p95": 467.2,
+        "p99": 670.6,
+        "max": 753.5
+      },
+      "meanInputTokens": 589.2,
+      "meanOutputTokens": 87
+    },
+    "llm": {
+      "calls": 90,
+      "errors": 0,
+      "errorRate": 0,
+      "models": {
+        "@cf/meta/llama-3.1-8b-instruct-fp8": 90
+      },
+      "okLatencyMs": {
+        "count": 90,
+        "mean": 2711.4,
+        "p50": 2586.4,
+        "p95": 3388.4,
+        "p99": 4368.3,
+        "max": 4492.3
+      },
+      "meanInputTokens": 347.9,
+      "meanOutputTokens": 47.6
+    }
+  },
+  "gate": {
+    "jev": {
+      "auto": {
+        "count": 0,
+        "share": 0
+      },
+      "fallback": {
+        "count": 30,
+        "share": 0.5,
+        "reviewRequired": 0
+      },
+      "human": {
+        "count": 30,
+        "share": 0.5,
+        "reviewRequired": 30
+      }
+    },
+    "llm": {
+      "auto": {
+        "count": 35,
+        "share": 0.5833,
+        "reviewRequired": 5
+      },
+      "fallback": {
+        "count": 0,
+        "share": 0
+      },
+      "human": {
+        "count": 25,
+        "share": 0.4167,
+        "reviewRequired": 25
+      }
+    }
+  },
+  "fraud": null,
+  "classification": {
+    "pairedRuns": 60,
+    "fixtures": 12,
+    "perModel": {
+      "jev": {
+        "cases": 60,
+        "missing": 0,
+        "typeAccuracy": 1,
+        "riskMAE": 0.0193,
+        "reviewAgreementAtHalf": 1
+      },
+      "llm": {
+        "cases": 60,
+        "missing": 0,
+        "typeAccuracy": 0.9167,
+        "riskMAE": 0.0417,
+        "reviewAgreementAtHalf": 0.9167
+      },
+      "hybrid": {
+        "cases": 60,
+        "missing": 0,
+        "typeAccuracy": 1,
+        "riskMAE": 0.0139,
+        "reviewAgreementAtHalf": 1
+      }
+    },
+    "hybridUnsafeAuto": 0,
+    "fixturesDetail": [
+      {
+        "id": "auto-01",
+        "expectedType": "auto",
+        "expectedRisk": 0,
+        "reviewRequired": false,
+        "repeats": 5,
+        "jevTypes": {
+          "auto": 5
+        },
+        "llmTypes": {
+          "auto": 5
+        },
+        "hybridReasons": {
+          "low_confidence_llm_assisted": 5
+        }
+      },
+      {
+        "id": "auto-02",
+        "expectedType": "auto",
+        "expectedRisk": 0.75,
+        "reviewRequired": true,
+        "repeats": 5,
+        "jevTypes": {
+          "auto": 5
+        },
+        "llmTypes": {
+          "auto": 5
+        },
+        "hybridReasons": {
+          "specialist_review_required": 5
+        }
+      },
+      {
+        "id": "property-01",
+        "expectedType": "property",
+        "expectedRisk": 0,
+        "reviewRequired": false,
+        "repeats": 5,
+        "jevTypes": {
+          "property": 5
+        },
+        "llmTypes": {
+          "property": 5
+        },
+        "hybridReasons": {
+          "low_confidence_llm_assisted": 5
+        }
+      },
+      {
+        "id": "property-02",
+        "expectedType": "property",
+        "expectedRisk": 0.75,
+        "reviewRequired": true,
+        "repeats": 5,
+        "jevTypes": {
+          "property": 5
+        },
+        "llmTypes": {
+          "property": 5
+        },
+        "hybridReasons": {
+          "specialist_review_required": 5
+        }
+      },
+      {
+        "id": "health-01",
+        "expectedType": "health",
+        "expectedRisk": 0,
+        "reviewRequired": false,
+        "repeats": 5,
+        "jevTypes": {
+          "health": 5
+        },
+        "llmTypes": {
+          "health": 5
+        },
+        "hybridReasons": {
+          "low_confidence_llm_assisted": 5
+        }
+      },
+      {
+        "id": "health-02",
+        "expectedType": "health",
+        "expectedRisk": 0.5,
+        "reviewRequired": true,
+        "repeats": 5,
+        "jevTypes": {
+          "health": 5
+        },
+        "llmTypes": {
+          "health": 5
+        },
+        "hybridReasons": {
+          "specialist_review_required": 5
+        }
+      },
+      {
+        "id": "travel-01",
+        "expectedType": "travel",
+        "expectedRisk": 0,
+        "reviewRequired": false,
+        "repeats": 5,
+        "jevTypes": {
+          "travel": 5
+        },
+        "llmTypes": {
+          "travel": 5
+        },
+        "hybridReasons": {
+          "low_confidence_llm_assisted": 5
+        }
+      },
+      {
+        "id": "travel-02",
+        "expectedType": "travel",
+        "expectedRisk": 1,
+        "reviewRequired": true,
+        "repeats": 5,
+        "jevTypes": {
+          "travel": 5
+        },
+        "llmTypes": {
+          "other": 5
+        },
+        "hybridReasons": {
+          "specialist_review_required": 5
+        }
+      },
+      {
+        "id": "other-01",
+        "expectedType": "other",
+        "expectedRisk": 0,
+        "reviewRequired": true,
+        "repeats": 5,
+        "jevTypes": {
+          "other": 5
+        },
+        "llmTypes": {
+          "other": 5
+        },
+        "hybridReasons": {
+          "specialist_review_required": 5
+        }
+      },
+      {
+        "id": "auto-03",
+        "expectedType": "auto",
+        "expectedRisk": 0,
+        "reviewRequired": true,
+        "repeats": 5,
+        "jevTypes": {
+          "auto": 5
+        },
+        "llmTypes": {
+          "auto": 5
+        },
+        "hybridReasons": {
+          "specialist_review_required": 5
+        }
+      },
+      {
+        "id": "property-03",
+        "expectedType": "property",
+        "expectedRisk": 0,
+        "reviewRequired": false,
+        "repeats": 5,
+        "jevTypes": {
+          "property": 5
+        },
+        "llmTypes": {
+          "property": 5
+        },
+        "hybridReasons": {
+          "low_confidence_llm_assisted": 5
+        }
+      },
+      {
+        "id": "travel-03",
+        "expectedType": "travel",
+        "expectedRisk": 0,
+        "reviewRequired": false,
+        "repeats": 5,
+        "jevTypes": {
+          "travel": 5
+        },
+        "llmTypes": {
+          "travel": 5
+        },
+        "hybridReasons": {
+          "low_confidence_llm_assisted": 5
+        }
+      }
+    ]
+  }
+}

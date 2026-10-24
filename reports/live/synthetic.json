@@ -1,0 +1,36 @@
+{
+  "kind": "live synthetic evaluation",
+  "timestamp": "2026-10-24T04:43:40.529Z",
+  "dataset": "synthetic fixtures",
+  "split": null,
+  "offset": 0,
+  "availableCases": 12,
+  "selectedCases": 12,
+  "repeats": 5,
+  "stoppedEarly": false,
+  "stopReason": null,
+  "throttledCalls": null,
+  "plannedPredictions": 120,
+  "completedPredictions": 120,
+  "models": {
+    "jev": "typesafe/jev",
+    "llm": "@cf/meta/llama-3.1-8b-instruct-fp8"
+  },
+  "rates": {
+    "jev": {
+      "input": 0.042,
+      "output": 0
+    },
+    "llm": {
+      "input": 0.152,
+      "output": 0.287
+    }
+  },
+  "policy": {
+    "confidence": 0.85,
+    "maxAutoRisk": 0.25,
+    "specialistRisk": 0.7,
+    "maxAutoReviewProbability": 0.1,
+    "specialistReviewProbability": 0.8
+  }
+}
