@@ -15,5 +15,11 @@ Each implementation task is committed only after its checks pass. The next check
 | `d75368c` | Added raw structured LLM capture and paired model comparisons | 62 tests; typecheck; pilot reproduction; actual-request verification and generated-probability/version labeling |
 | `bf981a9` | Added offline interactive explorer | 64 tests; typecheck; pilot reproduction; headless-Chrome checks of every control on the pilot and on LLM, failure and category test doubles; 375 px layout |
 | `d585723` | Made the baseline model hash platform-stable | 64 tests; typecheck; Linux CI reproduces the pilot comparisons byte for byte |
+| `44a1fb6` | Added claim-grouped uncertainty intervals and opt-in throttle retries | 68 tests; typecheck; grouped resampling, paired intervals, 429-only retries, and allocation-stop coverage |
+| `df4bf5d` | Declared the 1,000-claim Choice/Noul study before inference | Protocol committed before either study run; fixed plans, sample, questions, metrics, and LLM follow-up |
+| `56ffb47` | Captured both validation runs and reproducible grouped analyses | 68 tests; typecheck; 1,000/1,000 Choice responses, 969/1,000 Noul responses, reports regenerate without inference |
+| `107654a` | Published validation findings and documented protocol departures | Report findings checked against captured comparison and interval artifacts |
 
 At `27aaaa5`, a bounded pilot made 60 live Jev calls (20 claims per primitive). All succeeded. The sample has no fraud positives and does not support discrimination claims; see the [pilot report](../reports/experiments/pilot-20261024/README.md).
+
+The declared validation study has two completed Jev arms: Choice and Noul. The 70B LLM arm remains pending the quota reset specified in the [protocol](../reports/experiments/validation-20261024/PROTOCOL.md); no LLM comparison result is claimed yet. The latest report-reproduction, typecheck, dataset, and test checks pass at `107654a`; the handoff-log correction follows in the next documentation commit.
