@@ -1,26 +1,42 @@
 # ClaimSignal
 
-### Applied Research on Jev's Decision Primitives
+### Applied research on Jev's decision primitives
 
-**Status: Actively working on this project right now.**
+ClaimSignal studies whether Jev's typed `choice`, `score`, and `noul` decisions produce useful judgments on historical insurance claims—and how they compare with simple statistical and generative-model baselines.
 
-ClaimSignal is a TypeScript claims triage example and a research lab for TypeSafe AI's Jev. It studies whether Jev's typed `choice`, `score`, and `noul` decisions are useful on insurance claims, where their probabilities are reliable, and when a system should send a case to a person.
+## Research snapshot
 
-The first implementation includes a Jev adapter, confidence-based routing, an LLM fallback, an authenticated HTTP API, and a reproducible benchmark harness. Live Cloudflare runs are measured in the [live comparison report](reports/live-comparison.md).
+**Question:** Can a structured decision model estimate historical auto-insurance fraud better than a train-only statistical baseline, and how do its outputs compare with a general LLM?
 
-ClaimSignal is not evidence that an automated fraud or coverage decision is safe for production. The experiments use an old public tabular dataset and author-written smoke examples; neither includes claim narratives or labels for review decisions. Start with the [experiment guide](docs/experiments.md), inspect the [predeclared validation protocol](reports/experiments/validation-20261024/PROTOCOL.md), and read the [measured study report](reports/experiments/validation-20261024/README.md). The [progress log](docs/experiment-progress.md) links the work to its commits. New experiment planning is offline by default; live model calls require an explicit command.
+On 1,000 validation claims, Jev Choice ranked recorded fraud **below chance** (ROC-AUC 0.423, grouped 95% interval 0.352–0.493). A Naive Bayes model trained only on the training split reached 0.762 (0.701–0.817). On the first 250 matched claims, Llama 3.3 70B's ROC-AUC was 0.516 (0.393–0.638); it labeled 249 claims fraudulent despite 18 recorded frauds. The Jev-versus-LLM ranking difference is unresolved on this smaller sample.
 
-The validation run suggests Jev's fraud judgments can follow plausible but misleading cues in this dataset. On 1,000 validation claims, Jev Choice had ROC-AUC 0.423 (grouped 95% interval 0.352–0.493); train-only Naive Bayes reached 0.762 (0.701–0.817). On the first 250 matched claims, Jev and Llama 3.3 70B did not have a resolved ranking difference, while the LLM assigned fraud probabilities far above the observed rate. These are bounded results on historical records, not general measures of either model's ability. See the [complete validation report](reports/experiments/validation-20261024/README.md) and [protocol](reports/experiments/validation-20261024/PROTOCOL.md).
+| Model / sample | ROC-AUC (grouped 95% interval) | Brier score (lower is better) |
+| --- | ---: | ---: |
+| Jev Choice · 1,000 claims | 0.423 (0.352–0.493) | 0.085 |
+| Naive Bayes · same 1,000 claims | 0.762 (0.701–0.817) | 0.063 |
+| Llama 3.3 70B · matched 250 claims | 0.516 (0.393–0.638) | 0.414 |
 
-The [Jev experiment guide](docs/experiments.md) explains the task definitions, offline planning, explicit live runs, baselines, reports, uncertainty intervals, prompt variants, and explorer. Reproduce the committed research summaries without inference with `npm run report:experiments`. Start by inspecting a plan:
+![ROC-AUC with grouped bootstrap 95% intervals for Jev Choice, Naive Bayes and Llama 3.3 70B on the declared historical claims validation study](reports/figures/validation-roc-auc.svg)
+
+**Scope:** This is a bounded study of an old public, tabular auto-insurance dataset and recorded historical labels. It contains no original claimant narratives or review outcomes. It is not World Bank data, a public-sector evaluation, or evidence that any model is safe for fraud or coverage decisions. Probabilities and scores are evaluated, not presumed calibrated. Full limitations and protocol departures are in the [measured study report](reports/experiments/validation-20261024/README.md).
+
+## Start here
+
+- [Measured validation report](reports/experiments/validation-20261024/README.md) · [protocol declared before inference](reports/experiments/validation-20261024/PROTOCOL.md)
+- [Reproduce and inspect the experiments](docs/experiments.md) · [dataset card](data/README.md) · [commit progress log](docs/experiment-progress.md)
+
+Recompute the committed reports and build the interactive claim-level explorer without model calls or credentials:
 
 ```bash
 npm ci
-npm run experiment -- --help
-npm run experiment -- --task=vehicle-fraud-choice-v1 --limit=20
+npm run report:experiments
+git diff --exit-code -- reports
+npm run experiment:explore -- --run=reports/experiments/validation-20261024/jev-choice --run=reports/experiments/validation-20261024/jev-noul --run=reports/experiments/validation-20261024/llm70b-choice --out=experiment-results/validation.html
 ```
 
-The last command makes no model calls. Live runs require explicit `--execute`, Cloudflare credentials, and a new output directory. Read the predeclared [validation protocol](reports/experiments/validation-20261024/PROTOCOL.md) before interpreting the [measured findings](reports/experiments/validation-20261024/README.md).
+Open `experiment-results/validation.html` locally to inspect per-claim outputs and calibration bins. To plan a new run offline, use `npm run experiment -- --task=vehicle-fraud-choice-v1 --limit=20`; the plan command makes no model calls. Live inference requires an explicit `--execute`, Cloudflare credentials, and a new output directory. See the [full experiment guide](docs/experiments.md) before starting new runs.
+
+ClaimSignal also includes a TypeScript claims triage example, Jev adapter, confidence-based routing, LLM fallback, authenticated HTTP API, and reproducible live benchmark harness. These application components are research scaffolding, not production claims handling. See the [live comparison report](reports/live-comparison.md).
 
 ## How it works
 
