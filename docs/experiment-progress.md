@@ -27,6 +27,7 @@ Each implementation task is committed only after its checks pass. The next check
 | `9bb10fd` | Generated the validation ROC-AUC figure from committed grouped uncertainty artifacts | Offline report reproduction; typecheck; all 68 tests; report outputs unchanged |
 | `6a14f60` | Reworked the README research snapshot and added a no-credentials reproduction path | Offline report reproduction; report outputs unchanged; validation explorer generated from all three captures |
 | `16d57c0` | Clarified the evaluation method's broader relevance and the limits on transferring claim results | Offline report reproduction; report outputs unchanged |
+| `a527c64` | Added a sourced public-sector relevance note with explicit evidence boundaries | Typecheck; all 68 tests; offline report reproduction; report outputs unchanged |
 
 At `27aaaa5`, a bounded pilot made 60 live Jev calls (20 claims per primitive). All succeeded. The sample has no fraud positives and does not support discrimination claims; see the [pilot report](../reports/experiments/pilot-20261024/README.md).
 
