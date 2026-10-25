@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "kind": "GROUPED BOOTSTRAP INTERVALS",
+  "planId": "1f5e7cd572b1afdb9c13cb7a36e6276ba6e1bd30d7f124f75f59dc17824d75df",
+  "task": "vehicle-fraud-choice-v1",
+  "dataset": {
+    "name": "Vehicle Insurance Claim Fraud Detection",
+    "sha256": "d7dab6086aa186fc82c607d50919067a1599cea45afb4965511fd7da9e935e09",
+    "split": "validation",
+    "available": 3186
+  },
+  "adapter": "llm-structured-v1",
+  "resolvedModel": "@cf/meta/llama-3.3-70b-json",
+  "method": {
+    "interval": "95% percentile bootstrap",
+    "resamples": 2000,
+    "seed": 20261024,
+    "unit": "Claim group: claims with identical allowed features resample together; synthetic fixtures are their own groups.",
+    "undefinedResamples": "Interval omitted when the statistic is undefined in more than 1% of resamples, for example a resample without a positive outcome.",
+    "pairing": "Differences are computed on the same resampled claims in each draw, restricted to claims both sides answered."
+  },
+  "counts": {
+    "planned": 250,
+    "groups": 250,
+    "answered": 250,
+    "answeredPositives": 18
+  },
+  "warnings": [
+    "LLM probabilities and confidence are generated estimates, not next-token probabilities or Jev confidence statistics."
+  ],
+  "model": {
+    "answeredShare": {
+      "estimate": 1,
+      "low": 1,
+      "high": 1,
+      "undefinedResamples": 0
+    },
+    "brier": {
+      "estimate": 0.4140072,
+      "low": 0.40276964,
+      "high": 0.42442969,
+      "undefinedResamples": 0
+    },
+    "logLoss": {
+      "estimate": 1.03538085278,
+      "low": 1.01163009876,
+      "high": 1.05719280671,
+      "undefinedResamples": 0
+    },
+    "accuracy": {
+      "estimate": 0.076,
+      "low": 0.0479,
+      "high": 0.108,
+      "undefinedResamples": 0
+    },
+    "rocAuc": {
+      "estimate": 0.515924329502,
+      "low": 0.393208748092,
+      "high": 0.638352445532,
+      "undefinedResamples": 0
+    },
+    "averagePrecision": {
+      "estimate": 0.0744565426574,
+      "low": 0.0452112206321,
+      "high": 0.124319329299,
+      "undefinedResamples": 0
+    }
+  },
+  "baselines": {
+    "train-prior": {
+      "onModelAnswered": {
+        "brier": {
+          "estimate": 0.0669970926931,
+          "low": 0.0422754968561,
+          "high": 0.0952503450782,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.260318655134,
+          "low": 0.182543940174,
+          "high": 0.34920404366,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": 0.928,
+          "low": 0.896,
+          "high": 0.956,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.5,
+          "low": 0.5,
+          "high": 0.5,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.072,
+          "low": 0.044,
+          "high": 0.104,
+          "undefinedResamples": 0
+        }
+      },
+      "modelMinusBaseline": {
+        "brier": {
+          "estimate": 0.347010107307,
+          "low": 0.307116934922,
+          "high": 0.382527904558,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.775062197643,
+          "low": 0.660843656242,
+          "high": 0.876963565938,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": -0.852,
+          "low": -0.912,
+          "high": -0.784,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.0159243295019,
+          "low": -0.106791251908,
+          "high": 0.138352445532,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.00245654265738,
+          "low": -0.00602102239475,
+          "high": 0.0371616705426,
+          "undefinedResamples": 0
+        }
+      }
+    },
+    "naive-bayes": {
+      "onModelAnswered": {
+        "brier": {
+          "estimate": 0.0653718296193,
+          "low": 0.0456947366742,
+          "high": 0.0877738749507,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.256669004623,
+          "low": 0.180271253501,
+          "high": 0.348366491675,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": 0.924,
+          "low": 0.888,
+          "high": 0.956,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": 0.749521072797,
+          "low": 0.619033579264,
+          "high": 0.875848023504,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": 0.244867079209,
+          "low": 0.121865206342,
+          "high": 0.478041889639,
+          "undefinedResamples": 0
+        }
+      },
+      "modelMinusBaseline": {
+        "brier": {
+          "estimate": 0.348635370381,
+          "low": 0.316994484475,
+          "high": 0.377876673354,
+          "undefinedResamples": 0
+        },
+        "logLoss": {
+          "estimate": 0.778711848154,
+          "low": 0.671079452477,
+          "high": 0.874928101758,
+          "undefinedResamples": 0
+        },
+        "accuracy": {
+          "estimate": -0.848,
+          "low": -0.904,
+          "high": -0.784,
+          "undefinedResamples": 0
+        },
+        "rocAuc": {
+          "estimate": -0.233596743295,
+          "low": -0.403030803023,
+          "high": -0.0604631128664,
+          "undefinedResamples": 0
+        },
+        "averagePrecision": {
+          "estimate": -0.170410536552,
+          "low": -0.393268229575,
+          "high": -0.0540633246308,
+          "undefinedResamples": 0
+        }
+      }
+    }
+  },
+  "against": null,
+  "limitations": [
+    "Intervals describe sampling variability across these claims, not run-to-run model variation: there is one call per claim.",
+    "No adjustment for multiple comparisons. Treat intervals that exclude zero as descriptive, not as significance tests.",
+    "Percentile intervals undercover with few groups or rare positives; counts are reported for that reason.",
+    "Metrics exclude failed and unattempted calls; answeredShare reports that coverage separately."
+  ]
+}

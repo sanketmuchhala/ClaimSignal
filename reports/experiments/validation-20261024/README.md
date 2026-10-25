@@ -1,6 +1,6 @@
 # Validation study — 24 October 2026
 
-**Measured live runs on historical vehicle claims, analysed exactly as [declared before inference](PROTOCOL.md).** Jev ranks recorded fraud *worse than chance* on these records, and a train-only Naive Bayes model ranks it far better. The Llama 3.3 70B comparison runs after the Workers Free allocation resets and will be added here.
+**Measured live runs on historical vehicle claims, analysed exactly as [declared before inference](PROTOCOL.md).** Jev ranks recorded fraud *worse than chance* on these records, and a train-only Naive Bayes model ranks it far better. Llama 3.3 70B does not rank fraud either. It calls 249 of 250 claims fraudulent, so its probabilities are far worse than Jev's.
 
 ## What ran
 
@@ -8,9 +8,9 @@
 | --- | ---: | ---: | --- |
 | Jev `vehicle-fraud-choice-v1` | 1,000 | 1,000 | 5 throttling retries (HTTP 429 before inference) |
 | Jev `vehicle-fraud-noul-v1` | 1,000 | 969 | 31 failures caused by the client machine sleeping; see departures |
-| Llama 3.3 70B `vehicle-fraud-choice-v1` | 250 | — | Pending: runs after 00:00 UTC on 25 October |
+| Llama 3.3 70B `vehicle-fraud-choice-v1` | 250 | 250 | Ran 07:36–07:42 UTC on 25 October, after the allocation reset |
 
-Both Jev runs resolved to `jev-1.13.0` at code revision `df4bf5d`. The sample is the first 1,000 validation claims in hashed-ID order: 68 recorded frauds (6.8%) in 998 claim groups. It includes the 20 pilot claims. All intervals are 95% grouped percentile bootstrap intervals (2,000 resamples, seed 20261024).
+Both Jev runs resolved to `jev-1.13.0` at code revision `df4bf5d`. The LLM run requested `@cf/meta/llama-3.3-70b-instruct-fp8-fast` from a clean checkout of `df4bf5d`, and Cloudflare reported the model as `@cf/meta/llama-3.3-70b-json` (its JSON-mode route). The sample is the first 1,000 validation claims in hashed-ID order: 68 recorded frauds (6.8%) in 998 claim groups. It includes the 20 pilot claims. All intervals are 95% grouped percentile bootstrap intervals (2,000 resamples, seed 20261024).
 
 ## Primary result: Jev Choice against train-only Naive Bayes
 
@@ -39,6 +39,22 @@ On the 969 claims both answered (68 frauds):
 
 No difference is resolved: every interval includes zero. Both primitives rank fraud below chance. Noul's probabilities sit in a narrower band (almost all 0.10–0.30) and it flagged no claim at 0.5. The two tasks also differ by one sentence of wording, so even a difference would not isolate the primitive.
 
+## Jev against Llama 3.3 70B
+
+On the first 250 claims (18 frauds), which both answered in full. The LLM received the same question and claim text, and returned JSON in the same Choice format.
+
+| | Jev Choice | Llama 3.3 70B | Naive Bayes | Jev − LLM |
+| --- | ---: | ---: | ---: | ---: |
+| ROC-AUC | 0.410 (0.270–0.557) | 0.516 (0.393–0.638) | 0.750 (0.619–0.876) | −0.106 (−0.299 to 0.083) |
+| Brier score, lower is better | 0.088 (0.064–0.113) | 0.414 (0.403–0.424) | 0.065 | −0.326 (−0.358 to −0.290) |
+| Log loss, lower is better | 0.328 | 1.035 | 0.257 | −0.708 (−0.792 to −0.613) |
+| Mean fraud probability (observed 7.2%) | 15.6% | 66.1% | — | |
+| Called fraudulent at 0.5 | 2 (0 frauds) | 249 (all 18 frauds) | — | |
+
+- **Neither language model ranks fraud.** The LLM's ROC-AUC interval spans chance, and it trails Naive Bayes by 0.234 (0.060 to 0.403). On these 250 claims the Jev − LLM ranking difference is not resolved: its interval includes zero.
+- **The LLM's probabilities are unusable as stated.** It gave 227 claims a probability between 0.60 and 0.70, using only seven distinct values. Those claims were fraudulent 7.5% of the time. Jev over-predicts too, but by far less: its Brier score is lower by 0.326, and that interval excludes zero.
+- The LLM's probabilities and confidence are generated text, not token probabilities or a Jev confidence statistic.
+
 ## Why the ranking inverts (exploratory, not declared)
 
 This breakdown was not in the protocol; it describes the Choice run and tests nothing.
@@ -55,14 +71,14 @@ Jev applies generic suspicion: sport cars, many past claims, liability-only cove
 
 ## Operations
 
-| | Jev Choice | Jev Noul |
-| --- | ---: | ---: |
-| Median latency | 164 ms | 166 ms |
-| 95th percentile | 301 ms | not meaningful (machine slept) |
-| Input tokens per call | 607 | 570 |
-| Estimated cost per 1,000 claims | $0.025 | $0.024 |
+| | Jev Choice | Jev Noul | Llama 3.3 70B |
+| --- | ---: | ---: | ---: |
+| Median latency | 164 ms | 166 ms | 1,323 ms |
+| 95th percentile | 301 ms | not meaningful (machine slept) | 2,049 ms |
+| Tokens per call, input / output | 607 / 31 | 570 / 20 | 401 / 41 |
+| Estimated cost per 1,000 claims | $0.025 | $0.024 | $0.21 |
 
-Cost is an estimate at Jev's list rate of $0.042 per million input tokens and $0 output, from provider-reported tokens. The account is on the Workers Free plan.
+Cost is estimated from provider-reported tokens at list rates. Jev: $0.042 per million input tokens and $0 output. Llama 3.3 70B fp8-fast: $0.293 input and $2.253 output; Cloudflare reported 4,774 neurons for the 250 calls, which agrees. The account is on the Workers Free plan. Runs happened at different times from one machine, so latency is descriptive.
 
 ## Departures from the protocol
 
@@ -74,7 +90,7 @@ Cost is an estimate at Jev's list rate of $0.042 per million input tokens and $0
 ```bash
 npm run report:experiments
 git diff --exit-code -- reports/experiments
-npm run experiment:explore -- --run=reports/experiments/validation-20261024/jev-choice --run=reports/experiments/validation-20261024/jev-noul --out=experiment-results/validation.html
+npm run experiment:explore -- --run=reports/experiments/validation-20261024/jev-choice --run=reports/experiments/validation-20261024/jev-noul --run=reports/experiments/validation-20261024/llm70b-choice --out=experiment-results/validation.html
 ```
 
-The first command makes no model calls. It re-parses every raw response and regenerates `*/comparison.json`, `*/uncertainty.json` and `jev-choice-vs-jev-noul.json` from the committed captures. The explorer shows every claim, its answer and its calibration bin.
+The first command makes no model calls. It re-parses every raw response and regenerates `*/comparison.json`, `*/uncertainty.json` and the two `jev-choice-vs-*.json` comparisons from the committed captures. The explorer shows every claim, its answer and its calibration bin.

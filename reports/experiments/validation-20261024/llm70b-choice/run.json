@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "planId": "1f5e7cd572b1afdb9c13cb7a36e6276ba6e1bd30d7f124f75f59dc17824d75df",
+  "provenance": "live-provider",
+  "requestedModel": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+  "adapter": "llm-structured-v1",
+  "codeRevision": "df4bf5d1fcf4515da76826f63486c10566cfb55e",
+  "workingTreeDirty": false,
+  "node": "v26.8.1",
+  "createdAt": "2026-10-25T07:36:49.747Z",
+  "execution": "sequential, one question per call; up to 5 retries after HTTP 429, which rejects before inference; no other retries",
+  "cost": null,
+  "costNote": "No rates supplied; usage is retained. Missing cost is not zero."
+}

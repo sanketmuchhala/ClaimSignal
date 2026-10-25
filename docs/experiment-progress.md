@@ -15,6 +15,8 @@ Each implementation task is committed only after its checks pass. The next check
 | `d75368c` | Added raw structured LLM capture and paired model comparisons | 62 tests; typecheck; pilot reproduction; actual-request verification and generated-probability/version labeling |
 | `bf981a9` | Added offline interactive explorer | 64 tests; typecheck; pilot reproduction; headless-Chrome checks of every control on the pilot and on LLM, failure and category test doubles; 375 px layout |
 | `d585723` | Made the baseline model hash platform-stable | 64 tests; typecheck; Linux CI reproduces the pilot comparisons byte for byte |
+| `44a1fb6` | Added grouped bootstrap intervals and opt-in throttle retries | 68 tests; typecheck; point estimates equal analyze(); groups resample whole; prefix-only matching; retried 429s never recorded |
+| `df4bf5d`–`107654a` | Declared, ran and reported the validation study (Jev Choice and Noul, 1,000 claims) | Protocol committed before inference; Linux CI reproduces every derived file |
 | `44a1fb6` | Added claim-grouped uncertainty intervals and opt-in throttle retries | 68 tests; typecheck; grouped resampling, paired intervals, 429-only retries, and allocation-stop coverage |
 | `df4bf5d` | Declared the 1,000-claim Choice/Noul study before inference | Protocol committed before either study run; fixed plans, sample, questions, metrics, and LLM follow-up |
 | `56ffb47` | Captured both validation runs and reproducible grouped analyses | 68 tests; typecheck; 1,000/1,000 Choice responses, 969/1,000 Noul responses, reports regenerate without inference |
