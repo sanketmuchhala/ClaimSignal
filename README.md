@@ -18,7 +18,9 @@ On 1,000 validation claims, Jev Choice ranked recorded fraud **below chance** (R
 
 ![ROC-AUC with grouped bootstrap 95% intervals for Jev Choice, Naive Bayes and Llama 3.3 70B on the declared historical claims validation study](reports/figures/validation-roc-auc.svg)
 
-**Scope:** This is a bounded study of an old public, tabular auto-insurance dataset and recorded historical labels. It contains no original claimant narratives or review outcomes. It is not World Bank data, a public-sector evaluation, or evidence that any model is safe for fraud or coverage decisions. Probabilities and scores are evaluated, not presumed calibrated. Full limitations and protocol departures are in the [measured study report](reports/experiments/validation-20261024/README.md).
+**Why this evaluation matters:** A typed answer can be easy to integrate and still be wrong, overconfident, or unsuitable for automatic action. Comparing predictive quality, probability quality, failures, and escalation is a useful way to study bounded AI decisions in consequential workflows. This project tests that method on historical insurance claims; it does not measure World Bank or other public-sector use cases, and its claim-specific findings do not transfer to them.
+
+**Scope:** This is a bounded study of an old public, tabular auto-insurance dataset and recorded historical labels. It contains no original claimant narratives or review outcomes, and it is not evidence that any model is safe for fraud or coverage decisions. Probabilities and scores are evaluated, not presumed calibrated. Full limitations and protocol departures are in the [measured study report](reports/experiments/validation-20261024/README.md).
 
 ## Start here
 
