@@ -1,14 +1,26 @@
 # ClaimSignal
 
-### Real-Time Claims Triage with Jev
+### Applied Research on Jev's Decision Primitives
 
 **Status: Actively working on this project right now.**
 
-ClaimSignal is a TypeScript insurance claims triage service for Cloudflare Workers AI. It uses TypeSafe AI's Jev, a non-autoregressive System One model, to classify claim type, score fraud indicators, and make typed, probabilistic decisions instead of parsing free-text LLM output.
+ClaimSignal is a TypeScript claims triage example and a research lab for TypeSafe AI's Jev. It studies whether Jev's typed `choice`, `score`, and `noul` decisions are useful on insurance claims, where their probabilities are reliable, and when a system should send a case to a person.
 
 The first implementation includes a Jev adapter, confidence-based routing, an LLM fallback, an authenticated HTTP API, and a reproducible benchmark harness. Live Cloudflare runs are measured in the [live comparison report](reports/live-comparison.md).
 
-ClaimSignal is also an applied **Jev Decision Intelligence Lab**, using claims data to study decision primitives, probability calibration, abstention, and failure cases. The [experiment protocol and commands](docs/experiments.md) describe the separate research modules; the [commit progress log](docs/experiment-progress.md) tracks rollback checkpoints. The existing service and historical measurements remain the baseline. New experiment planning is offline by default, and synthetic smoke checks are explicitly separated from historical claims evaluations.
+ClaimSignal is not evidence that an automated fraud or coverage decision is safe for production. The experiments use an old public tabular dataset and author-written smoke examples; neither includes claim narratives or labels for review decisions. Start with the [experiment guide](docs/experiments.md), inspect the [predeclared validation protocol](reports/experiments/validation-20261024/PROTOCOL.md), and read the [measured study report](reports/experiments/validation-20261024/README.md). The [progress log](docs/experiment-progress.md) links the work to its commits. New experiment planning is offline by default; live model calls require an explicit command.
+
+The validation run suggests Jev's fraud judgments can follow plausible but misleading cues in this dataset. On 1,000 validation claims, Jev Choice had ROC-AUC 0.423 (grouped 95% interval 0.352–0.493); train-only Naive Bayes reached 0.762 (0.701–0.817). This is a bounded result on historical records, not a general measure of Jev's ability. The Llama 3.3 70B comparison is still pending, so the declared study is not complete.
+
+The [Jev experiment guide](docs/experiments.md) explains the task definitions, offline planning, explicit live runs, baselines, reports, uncertainty intervals, prompt variants, and explorer. Reproduce the committed research summaries without inference with `npm run report:experiments`. Start by inspecting a plan:
+
+```bash
+npm ci
+npm run experiment -- --help
+npm run experiment -- --task=vehicle-fraud-choice-v1 --limit=20
+```
+
+The last command makes no model calls. Live runs require explicit `--execute`, Cloudflare credentials, and a new output directory. Read the predeclared [validation protocol](reports/experiments/validation-20261024/PROTOCOL.md) before interpreting the [measured findings](reports/experiments/validation-20261024/README.md).
 
 ## How it works
 
