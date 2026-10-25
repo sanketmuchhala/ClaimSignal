@@ -28,6 +28,9 @@ Each implementation task is committed only after its checks pass. The next check
 | `6a14f60` | Reworked the README research snapshot and added a no-credentials reproduction path | Offline report reproduction; report outputs unchanged; validation explorer generated from all three captures |
 | `16d57c0` | Clarified the evaluation method's broader relevance and the limits on transferring claim results | Offline report reproduction; report outputs unchanged |
 | `a527c64` | Added a sourced public-sector relevance note with explicit evidence boundaries | Typecheck; all 68 tests; offline report reproduction; report outputs unchanged |
+| `ef800ea` | Added GitHub research metadata, a citation file, and a research-focused package description | CFF YAML and package JSON valid; typecheck; all 68 tests; offline report reproduction; CI passed on following push |
+| `7bdd531` | Added a live GitHub Actions status badge to the README | GitHub Actions passed all checks (run `40232958822`) |
+| `50b82ea` | Updated CI actions to Node 24-compatible major versions | Full CI passed locally and on GitHub (run `40233082292`); Node 20 deprecation warnings removed |
 
 At `27aaaa5`, a bounded pilot made 60 live Jev calls (20 claims per primitive). All succeeded. The sample has no fraud positives and does not support discrimination claims; see the [pilot report](../reports/experiments/pilot-20261024/README.md).
 
