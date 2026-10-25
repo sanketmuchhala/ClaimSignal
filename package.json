@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Real-time claims triage with typed Jev decisions on Cloudflare Workers",
+  "description": "Reproducible research on Jev decision primitives and model evaluation for insurance claims",
   "engines": {
     "node": ">=22.18.0"
   },

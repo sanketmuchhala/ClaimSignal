@@ -26,7 +26,7 @@ On 1,000 validation claims, Jev Choice ranked recorded fraud **below chance** (R
 
 - [Measured validation report](reports/experiments/validation-20261024/README.md) · [protocol declared before inference](reports/experiments/validation-20261024/PROTOCOL.md)
 - [Public-sector evaluation relevance and evidence boundaries](docs/public-sector-evaluation-relevance.md) · [reproduce and inspect experiments](docs/experiments.md)
-- [Dataset card](data/README.md) · [commit progress log](docs/experiment-progress.md)
+- [Dataset card](data/README.md) · [citation metadata](CITATION.cff) · [commit progress log](docs/experiment-progress.md)
 
 Recompute the committed reports and build the interactive claim-level explorer without model calls or credentials:
 

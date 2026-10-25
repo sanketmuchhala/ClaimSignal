@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use ClaimSignal's software or research artifacts, please cite this project."
+title: "ClaimSignal: A reproducible research lab for Jev decision primitives"
+type: software
+authors:
+  - family-names: Muchhala
+    given-names: Sanket
+version: 0.1.0
+date-released: 2026-10-25
+url: "https://github.com/sanketmuchhala/ClaimSignal"
+repository-code: "https://github.com/sanketmuchhala/ClaimSignal"
+license: MIT
+keywords:
+  - AI evaluation
+  - Jev
+  - model comparison
+  - calibration
+  - selective prediction
+  - insurance claims
+abstract: >-
+  ClaimSignal evaluates Jev's typed choice, score, and noul decisions on historical
+  insurance claims. It includes declared experiments, captured model outputs,
+  statistical baselines, grouped uncertainty analysis, and offline report
+  reproduction. The results are limited to the documented claims data and do not
+  establish suitability for production or public-sector decisions.
