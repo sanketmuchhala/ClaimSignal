@@ -23,6 +23,10 @@ Each implementation task is committed only after its checks pass. The next check
 | `107654a` | Published validation findings and documented protocol departures | Report findings checked against captured comparison and interval artifacts |
 | `401a6e8` | Restored omitted study commits and their results to the handoff log | Documentation correction; the log now records the completed Jev arms and pending LLM arm |
 | `988e0a2` | Captured the declared Llama 3.3 70B comparison and completed the three-arm validation report | 250/250 LLM responses; offline summaries regenerated from immutable captures; Jev and LLM ranking difference remains unresolved on this sample |
+| `16782ae` | Corrected the README and progress log to reflect the completed LLM arm | Offline report reproduction; typecheck; all 68 tests |
+| `9bb10fd` | Generated the validation ROC-AUC figure from committed grouped uncertainty artifacts | Offline report reproduction; typecheck; all 68 tests; report outputs unchanged |
+| `6a14f60` | Reworked the README research snapshot and added a no-credentials reproduction path | Offline report reproduction; report outputs unchanged; validation explorer generated from all three captures |
+| `16d57c0` | Clarified the evaluation method's broader relevance and the limits on transferring claim results | Offline report reproduction; report outputs unchanged |
 
 At `27aaaa5`, a bounded pilot made 60 live Jev calls (20 claims per primitive). All succeeded. The sample has no fraud positives and does not support discrimination claims; see the [pilot report](../reports/experiments/pilot-20261024/README.md).
 
