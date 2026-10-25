@@ -1,5 +1,7 @@
 # ClaimSignal
 
+[![CI](https://github.com/sanketmuchhala/ClaimSignal/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sanketmuchhala/ClaimSignal/actions/workflows/ci.yml)
+
 ### Applied research on Jev's decision primitives
 
 ClaimSignal studies whether Jev's typed `choice`, `score`, and `noul` decisions produce useful judgments on historical insurance claims—and how they compare with simple statistical and generative-model baselines.
